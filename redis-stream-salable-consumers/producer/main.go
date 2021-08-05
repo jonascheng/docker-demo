@@ -35,7 +35,7 @@ func produce(c *redis.Client) { // operate with redis.Client
 	var streamName string = getEnv("STREAM_NAME", "stream")
 	var counter uint32 = 0
 
-	for ; counter < 100; counter++ {
+	for ; counter < 1000; counter++ {
 		id, err := c.XAdd(&redis.XAddArgs{
 			Stream: streamName,
 			Values: map[string]interface{}{"counter": counter, "field1": "value1", "field2": "value2"},
