@@ -1,0 +1,49 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  redis:
+    image: redis:5.0-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  producer:
+    build: ./producer/
+    image: jonascheng/redis-producer
+    environment:
+      - REDIS_SERVER=redis
+      - STREAM_NAME=my-stream
+    depends_on:
+      - redis
+    links:
+      - redis
+  process_even:
+    build: ./consumer/
+    image: jonascheng/redis-consumer
+    environment:
+      - REDIS_SERVER=redis
+      - STREAM_NAME=my-stream
+      - PROCESS_MSG=even
+    depends_on:
+      - redis
+      - producer
+    links:
+      - redis
+  process_odd:
+    build: ./consumer/
+    image: jonascheng/redis-consumer
+    environment:
+      - REDIS_SERVER=redis
+      - STREAM_NAME=my-stream
+      - PROCESS_MSG=odd
+    depends_on:
+      - redis
+      - producer
+    links:
+      - redis
+
+networks:
+  default:
+    name: redis-stream-salable-consumers
