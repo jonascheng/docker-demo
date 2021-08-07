@@ -27,18 +27,18 @@ Run redis client to list pending messages
 ```console
 $> docker run -it --network redis-stream-salable-consumers --rm redis redis-cli -h redis
 
-redis:6379> XPENDING my-stream group - + 1000 consumer
+redis:6379> XPENDING my-stream group - + 1000
 
- 1) 1) "1628172682161-0"
-    2) "consumer"
-    3) (integer) 59755
+ 1) 1) "1628332047025-0"
+    2) "consumer-172.21.0.5"
+    3) (integer) 91
     4) (integer) 2
- 2) 1) "1628172684163-0"
-    2) "consumer"
-    3) (integer) 59755
+ 2) 1) "1628332049030-0"
+    2) "consumer-172.21.0.5"
+    3) (integer) 91
     4) (integer) 2
- 3) 1) "1628172686167-0"
-    2) "consumer"
-    3) (integer) 58233
-    4) (integer) 1
+ 3) 1) "1628332051036-0"
+    2) "consumer-172.21.0.5"
+    3) (integer) 91
+    4) (integer) 2
 ```

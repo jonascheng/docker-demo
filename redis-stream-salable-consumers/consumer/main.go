@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis"
 )
@@ -15,6 +17,17 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+func getLocalIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:8")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	localIP := conn.LocalAddr().(*net.UDPAddr).IP
+	fmt.Println(localIP.String())
+	return localIP.String()
 }
 
 func newRedisClient() *redis.Client { // init redis.Client and return the reference
@@ -52,32 +65,48 @@ func process_message(msg redis.XMessage) bool {
 	return false
 }
 
-func consume(c *redis.Client) { // operate with redis.Client
-	var streamName string = getEnv("STREAM_NAME", "stream")
-	const consumerGroupName string = "group"
-	const consumerName string = "consumer"
+func pending_checker(c *redis.Client, streamName string, consumerGroupName string, consumerName string) {
 
-	// create consumer group
-	err := c.XGroupCreate(streamName, consumerGroupName, "0-0").Err()
-	if err != nil && err.Error() != "BUSYGROUP Consumer Group name already exists" {
-		panic(err)
-	}
+loop:
 
-	// return pending entries: messages delivered to it, but not yet acknowledged.
-	entries, err := c.XReadGroup(&redis.XReadGroupArgs{
-		Streams:  []string{streamName, "0"},
-		Group:    consumerGroupName,
-		Consumer: consumerName,
-		NoAck:    false,
+	// list pending messages
+	pending, err := c.XPendingExt(&redis.XPendingExtArgs{
+		Stream: streamName,
+		Group:  consumerGroupName,
+		Start:  "-",
+		End:    "+",
+		Count:  10,
 	}).Result()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("res:", entries[0].Stream)
-	fmt.Printf("Messages: %T\n", entries[0].Messages)
+	fmt.Println("pending messages:", pending)
+
+	var pending_messages []string
+	for _, msg := range pending {
+		pending_messages = append(pending_messages, msg.Id)
+	}
+	fmt.Println("pending message Ids:", pending_messages)
+
+	if len(pending_messages) == 0 {
+		goto loop
+	}
+
+	// re-claim pending messages
+	entries, err := c.XClaim(&redis.XClaimArgs{
+		Stream:   streamName,
+		Group:    consumerGroupName,
+		Consumer: consumerName,
+		MinIdle:  60000, // ms
+		Messages: pending_messages,
+	}).Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Messages: %T\n", entries)
 
 	// process pending messages
-	for _, msg := range entries[0].Messages {
+	for _, msg := range entries {
 		// fmt.Printf("msg type: %T\n", msg)
 		processed := process_message(msg)
 		if processed {
@@ -89,15 +118,34 @@ func consume(c *redis.Client) { // operate with redis.Client
 		}
 	}
 
+	// pause
+	time.Sleep(60 * time.Second)
+
+	goto loop
+}
+
+func consume(c *redis.Client) { // operate with redis.Client
+	var streamName string = getEnv("STREAM_NAME", "stream")
+	var consumerGroupName string = "group"
+	var consumerName string = "consumer-" + getLocalIP()
+
+	// create consumer group
+	err := c.XGroupCreate(streamName, consumerGroupName, "0-0").Err()
+	if err != nil && err.Error() != "BUSYGROUP Consumer Group name already exists" {
+		panic(err)
+	}
+
+	go pending_checker(c, streamName, consumerGroupName, consumerName)
+
 	for {
-		entries, err = c.XReadGroup(&redis.XReadGroupArgs{
+		entries, err := c.XReadGroup(&redis.XReadGroupArgs{
 			// The special > ID, which means that the consumer want to receive only
 			// messages that were never delivered to any other consumer.
 			// It just means, give me new messages.
 			Streams:  []string{streamName, ">"},
 			Group:    consumerGroupName,
 			Consumer: consumerName,
-			Count:    10,
+			Count:    1,
 			// Block:    100 * time.Millisecond,
 			NoAck: false,
 		}).Result()
