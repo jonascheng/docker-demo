@@ -77,13 +77,12 @@ func consume(c *redis.Client) { // operate with redis.Client
 	fmt.Printf("Messages: %T\n", entries[0].Messages)
 
 	// process pending messages
-	for id, values := range entries[0].Messages {
-		fmt.Println("msg id:", id)
-		fmt.Printf("msg: %T\n", values)
-		processed := process_message(values)
+	for _, msg := range entries[0].Messages {
+		// fmt.Printf("msg type: %T\n", msg)
+		processed := process_message(msg)
 		if processed {
 			// ack message
-			err := c.XAck(streamName, consumerGroupName, values.ID).Err()
+			err := c.XAck(streamName, consumerGroupName, msg.ID).Err()
 			if err != nil {
 				panic(err)
 			}
@@ -108,13 +107,12 @@ func consume(c *redis.Client) { // operate with redis.Client
 		fmt.Println("res:", entries)
 
 		// process delivered messages
-		for id, values := range entries[0].Messages {
-			fmt.Println("msg id:", id)
-			fmt.Printf("msg: %T\n", values)
-			processed := process_message(values)
+		for _, msg := range entries[0].Messages {
+			// fmt.Printf("msg type: %T\n", msg)
+			processed := process_message(msg)
 			if processed {
 				// ack message
-				err := c.XAck(streamName, consumerGroupName, values.ID).Err()
+				err := c.XAck(streamName, consumerGroupName, msg.ID).Err()
 				if err != nil {
 					panic(err)
 				}
