@@ -10,7 +10,7 @@ service {
       
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "10.5.0.5:20000"
+        tcp = "api:20000"
         interval ="10s"
       }
 
