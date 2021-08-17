@@ -7,7 +7,7 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: ${NODE_NAME}-consul-server
-    command: ["consul", "agent", "-config-file=/config/config.hcl", "-config-dir=/config"]
+    command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-config-dir=/config"]
     volumes:
     - "./consul:/config"
     ports:
@@ -48,7 +48,7 @@ services:
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
       CONNECT_SIDECAR_FOR: "ingress-v1"
     volumes:
-    - "./fake-service/service_config:/config"
+    - "./fake-service/service_config_${NODE_NAME}:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:ingress"
@@ -84,7 +84,7 @@ services:
       CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
       CONNECT_SIDECAR_FOR: "web-v1"
     volumes:
-    - "./fake-service/service_config:/config"
+    - "./fake-service/service_config_${NODE_NAME}:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:web"
@@ -121,7 +121,7 @@ services:
       CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
       CONNECT_SIDECAR_FOR: "api-v1"
     volumes:
-    - "./fake-service/service_config:/config"
+    - "./fake-service/service_config_${NODE_NAME}:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:api"
