@@ -10,10 +10,10 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 ## Deployment procedure
 
-1. Clone [learn-consul-docker](https://github.com/hashicorp/learn-consul-docker) repository.
+1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
 2. Navigate to this directory.
-3. Install the Loki logging drivers for Docker: `docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions`
-4. `docker-compose up -d`
+3. `docker-compose --env-file ./config/server-1.env up -d`
+4. `docker-compose --env-file ./config/server-2.env up -d`
 
 ## Testing procedure
 

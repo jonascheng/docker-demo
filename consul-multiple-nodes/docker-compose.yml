@@ -10,14 +10,10 @@ services:
     volumes:
     - "./consul:/config"
     ports:
-    - 8500:8500
+    - ${CONSUL_UI_EXTERNAL_PORT}:8500
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.2
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+        ipv4_address: ${CONSUL_SERVER_IP_ADDR}
 
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
@@ -33,23 +29,18 @@ services:
       TIMING_90_PERCENTILE: 60ms
       TIMING_99_PERCENTILE: 90ms
       TIMING_VARIANCE: 10
-      TRACING_ZIPKIN: "http://tempo:9411"
     ports:
-    - "9090:9090"
+    - "${INGRESS_EXTERNAL_PORT}:9090"
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.3
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+        ipv4_address: ${INGRESS_IP_ADDR}
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
     depends_on:
       - "ingress"
     environment:
-      CONSUL_HTTP_ADDR: 10.5.0.2:8500
-      CONSUL_GRPC_ADDR: 10.5.0.2:8502
+      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
+      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
       SERVICE_CONFIG: /config/ingress_v1.hcl
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
     volumes:
@@ -57,10 +48,6 @@ services:
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy", "-sidecar-for", "ingress-v1"]
     network_mode: "service:ingress"
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
 
   web:
     image: nicholasjackson/fake-service:v0.21.0
@@ -77,21 +64,16 @@ services:
       TIMING_90_PERCENTILE: 30ms
       TIMING_99_PERCENTILE: 40ms
       TIMING_VARIANCE: 10
-      TRACING_ZIPKIN: "http://tempo:9411"
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.4
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+        ipv4_address: ${WEB_IP_ADDR}
   web_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
     depends_on:
       - "web"
     environment:
-      CONSUL_HTTP_ADDR: 10.5.0.2:8500
-      CONSUL_GRPC_ADDR: 10.5.0.2:8502
+      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
+      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
       SERVICE_CONFIG: /config/web_v1.hcl
       CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
     volumes:
@@ -99,10 +81,6 @@ services:
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy", "-sidecar-for", "web-v1"]
     network_mode: "service:web"
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
@@ -117,24 +95,19 @@ services:
       TIMING_90_PERCENTILE: 2ms
       TIMING_99_PERCENTILE: 3ms
       TIMING_VARIANCE: 10
-      TRACING_ZIPKIN: "http://tempo:9411"
       ERROR_RATE: 0.2
       ERROR_CODE: 14
       ERROR_TYPE: "http_error"
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.5
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+        ipv4_address: ${API_IP_ADDR}
   api_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
     depends_on:
       - "api"
     environment:
-      CONSUL_HTTP_ADDR: 10.5.0.2:8500
-      CONSUL_GRPC_ADDR: 10.5.0.2:8502
+      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
+      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
       SERVICE_CONFIG: /config/api_v1.hcl
       CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
     volumes:
@@ -142,49 +115,10 @@ services:
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy", "-sidecar-for", "api-v1"]
     network_mode: "service:api"
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
-
-  tempo:
-    image: grafana/tempo:1f1c40b3
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes:
-      - ./tempo/tempo.yaml:/etc/tempo.yaml
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.9
-    ports:
-      - "14268:14268" # jaeger ingest
-      - "3100"  # tempo
-      - "9411:9411" #zipkin
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
-
-  loki:
-    image: grafana/loki:2.1.0
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.11
-    ports:
-      - "3100:3100"                                   # loki needs to be exposed so it receives logs
-    environment:
-      - JAEGER_AGENT_HOST=tempo
-      - JAEGER_ENDPOINT=http://tempo:14268/api/traces # send traces to Tempo
-      - JAEGER_SAMPLER_TYPE=const
-      - JAEGER_SAMPLER_PARAM=1
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
 
 networks:
   vpcbr:
     driver: bridge
     ipam:
       config:
-      - subnet: 10.5.0.0/16
+      - subnet: ${SUBNET_CIDR}
