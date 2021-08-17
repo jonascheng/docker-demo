@@ -7,7 +7,8 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: ${NODE_NAME}-consul-server
-    command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-config-dir=/config"]
+    # command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-config-dir=/config"]
+    command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl"]
     volumes:
     - "./consul:/config"
     ports:
