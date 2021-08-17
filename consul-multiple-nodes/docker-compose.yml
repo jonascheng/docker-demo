@@ -6,7 +6,6 @@ services:
 
   consul-server:
     image: hashicorp/consul:1.8.10
-    container_name: consul-server
     command: ["consul", "agent", "-config-file=/config/config.hcl", "-config-dir=/config"]
     volumes:
     - "./consul:/config"
@@ -22,7 +21,6 @@ services:
 
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: ingress
     depends_on:
       - "consul-server"
     environment:
@@ -47,7 +45,6 @@ services:
         loki-url: 'http://localhost:3100/api/prom/push'
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
-    container_name: ingress_proxy
     depends_on:
       - "ingress"
     environment:
@@ -67,7 +64,6 @@ services:
 
   web:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: web
     depends_on:
       - "consul-server"
     environment:
@@ -91,7 +87,6 @@ services:
         loki-url: 'http://localhost:3100/api/prom/push'
   web_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: web_proxy
     depends_on:
       - "web"
     environment:
@@ -111,7 +106,6 @@ services:
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: api
     depends_on:
       - "consul-server"
     environment:
@@ -136,7 +130,6 @@ services:
         loki-url: 'http://localhost:3100/api/prom/push'
   api_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: api_proxy
     depends_on:
       - "api"
     environment:
@@ -154,51 +147,8 @@ services:
       options:
         loki-url: 'http://localhost:3100/api/prom/push'
 
-  node-exporter:
-    image: prom/node-exporter:v1.1.2
-    container_name: node-exporter
-    restart: always
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command: 
-      - '--path.procfs=/host/proc' 
-      - '--path.sysfs=/host/sys'
-      - --collector.filesystem.ignored-mount-points
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.7
-    ports:
-      - 9100:9100
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
-
-  prometheus:
-    image: prom/prometheus:v2.26.0
-    container_name: prometheus
-    restart: always
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus.yml
-    entrypoint:
-      - /bin/prometheus
-      - --config.file=/etc/prometheus.yml
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.8
-    ports:
-      - "9092:9090"
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
-
   tempo:
     image: grafana/tempo:1f1c40b3
-    container_name: tempo
     command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./tempo/tempo.yaml:/etc/tempo.yaml
@@ -214,50 +164,8 @@ services:
       options:
         loki-url: 'http://localhost:3100/api/prom/push'
 
-# Alternative to Tempo
-#  jaeger:
-#    image: jaegertracing/all-in-one:1.22
-#    container_name: jaeger
-#    environment:
-#      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
-#      COLLECTOR_ZIPKIN_HOST_PORT: 9411
-#    ports:
-#    - "5775:5775/udp"
-#    - "6831:6831/udp"
-#    - "6832:6832/udp"
-#    - "5778:5778"
-#    - "16686:16686"
-#    - "14268:14268"
-#    - "9411:9411"
-#    networks:
-#      vpcbr:
-#        ipv4_address: 10.5.0.6
-
-  grafana:
-    image: grafana/grafana:7.5.3
-    container_name: grafana
-    restart: always
-    volumes:
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.10
-    ports:
-      - "3000:3000"
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
-
   loki:
     image: grafana/loki:2.1.0
-    container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       vpcbr:
