@@ -1,5 +1,7 @@
 service {
   name = "ingress"
+  id = "ingress-v1"
+  address = "10.5.0.3"
   port = 9090
   
   connect { 
@@ -8,7 +10,7 @@ service {
       
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "127.0.0.1:20000"
+        tcp = "10.5.0.3:20000"
         interval ="10s"
       }
 
