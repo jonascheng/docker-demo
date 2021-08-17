@@ -6,6 +6,7 @@ services:
 
   consul-server:
     image: hashicorp/consul:1.8.10
+    container_name: ${NODE_NAME}-consul-server
     command: ["consul", "agent", "-config-file=/config/config.hcl", "-config-dir=/config"]
     volumes:
     - "./consul:/config"
@@ -17,6 +18,7 @@ services:
 
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
+    container_name: ${NODE_NAME}-ingress
     depends_on:
       - "consul-server"
     environment:
@@ -36,6 +38,7 @@ services:
         ipv4_address: ${INGRESS_IP_ADDR}
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
+    container_name: ${NODE_NAME}-ingress_proxy
     depends_on:
       - "ingress"
     environment:
@@ -51,6 +54,7 @@ services:
 
   web:
     image: nicholasjackson/fake-service:v0.21.0
+    container_name: ${NODE_NAME}-web
     depends_on:
       - "consul-server"
     environment:
@@ -69,6 +73,7 @@ services:
         ipv4_address: ${WEB_IP_ADDR}
   web_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: ${NODE_NAME}-web_proxy
     depends_on:
       - "web"
     environment:
@@ -84,6 +89,7 @@ services:
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
+    container_name: ${NODE_NAME}-api
     depends_on:
       - "consul-server"
     environment:
@@ -103,6 +109,7 @@ services:
         ipv4_address: ${API_IP_ADDR}
   api_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: ${NODE_NAME}-api_proxy
     depends_on:
       - "api"
     environment:
