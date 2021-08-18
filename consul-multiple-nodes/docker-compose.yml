@@ -1,5 +1,4 @@
 ---
-
 version: "3.7"
 
 services:
@@ -12,6 +11,7 @@ services:
     volumes:
     - "./consul:/config"
     ports:
+    - 8600:8600/udp
     - ${CONSUL_UI_EXTERNAL_PORT}:8500
     networks:
       vpcbr:

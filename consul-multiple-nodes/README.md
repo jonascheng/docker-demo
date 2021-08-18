@@ -12,8 +12,8 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
 2. Navigate to this directory.
-3. `docker-compose --env-file ./config/server-1.env up -d`
-4. `docker-compose --env-file ./config/server-2.env up -d`
+3. `docker-compose --env-file ./config/server1.env up -d`
+4. `docker-compose --env-file ./config/server2.env up -d`
 
 ## Testing procedure
 
@@ -31,7 +31,7 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 ## Application reference
 
-This demo consists of three services Ingress (HTTP), Web (HTTP), and API (gRPC)  which are configured to communicate using Consul Service Mesh. 
+This demo consists of three services Ingress (HTTP), Web (HTTP), and API (gRPC)  which are configured to communicate using Consul Service Mesh.
 
 ```
 ingress (HTTP) --
@@ -39,7 +39,7 @@ ingress (HTTP) --
                                 api (gRPC, 20% error rate)
 ```
 
-Tracing has been configured for both the application instances and Envoy proxy using the Zipkin protocol, the spans 
+Tracing has been configured for both the application instances and Envoy proxy using the Zipkin protocol, the spans
 will be collected by the bundled Jaeger instance.
 
 ![](images/fake-ui.png)

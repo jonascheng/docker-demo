@@ -7,7 +7,7 @@ telemetry {
 
 log_level = "TRACE"
 
-datacenter = "dc2"
+datacenter = "dc1"
 
 server = true
 
