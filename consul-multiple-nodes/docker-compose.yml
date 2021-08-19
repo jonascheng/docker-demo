@@ -7,12 +7,21 @@ services:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
     # command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-config-dir=/config"]
-    command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl"]
+    command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-advertise", "10.1.0.20"]
     volumes:
     - "./consul:/config"
     ports:
+    # DNS: The DNS server (TCP and UDP)
+    - 8600:8600/tcp
     - 8600:8600/udp
+    # HTTP: The HTTP API (TCP Only)
     - 8500:8500
+    # LAN Serf: The Serf LAN port (TCP and UDP)
+    - 8301:8301
+    # Wan Serf: The Serf WAN port (TCP and UDP)
+    # - 8302:8302
+    # server: Server RPC address (TCP Only)
+    - 8300:8300
     networks:
       vpcbr:
         ipv4_address: ${CONSUL_SERVER_IP_ADDR}
