@@ -1,4 +1,6 @@
 data_dir = "/tmp/"
+disable_update_check = true
+enable_local_script_checks = true
 
 telemetry {
   prometheus_retention_time = "60s"
