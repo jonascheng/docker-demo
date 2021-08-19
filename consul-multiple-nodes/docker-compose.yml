@@ -5,21 +5,21 @@ services:
 
   consul-server:
     image: hashicorp/consul:1.8.10
-    container_name: ${NODE_NAME}-consul-server
+    container_name: consul-server
     # command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl", "-config-dir=/config"]
     command: ["consul", "agent", "-config-file=/config/config_${NODE_NAME}.hcl"]
     volumes:
     - "./consul:/config"
     ports:
     - 8600:8600/udp
-    - ${CONSUL_UI_EXTERNAL_PORT}:8500
+    - 8500:8500
     networks:
       vpcbr:
         ipv4_address: ${CONSUL_SERVER_IP_ADDR}
 
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: ${NODE_NAME}-ingress
+    container_name: ingress
     depends_on:
       - "consul-server"
     environment:
@@ -33,13 +33,13 @@ services:
       TIMING_99_PERCENTILE: 90ms
       TIMING_VARIANCE: 10
     ports:
-    - "${INGRESS_EXTERNAL_PORT}:9090"
+    - 9090:9090
     networks:
       vpcbr:
         ipv4_address: ${INGRESS_IP_ADDR}
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
-    container_name: ${NODE_NAME}-ingress_proxy
+    container_name: ingress_proxy
     depends_on:
       - "ingress"
     environment:
@@ -49,14 +49,14 @@ services:
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
       CONNECT_SIDECAR_FOR: "ingress-v1"
     volumes:
-    - "./fake-service/service_config_${NODE_NAME}:/config"
+    - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:ingress"
 
   web:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: ${NODE_NAME}-web
+    container_name: web
     depends_on:
       - "consul-server"
     environment:
@@ -75,7 +75,7 @@ services:
         ipv4_address: ${WEB_IP_ADDR}
   web_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: ${NODE_NAME}-web_proxy
+    container_name: web_proxy
     depends_on:
       - "web"
     environment:
@@ -85,14 +85,14 @@ services:
       CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
       CONNECT_SIDECAR_FOR: "web-v1"
     volumes:
-    - "./fake-service/service_config_${NODE_NAME}:/config"
+    - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:web"
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: ${NODE_NAME}-api
+    container_name: api
     depends_on:
       - "consul-server"
     environment:
@@ -112,7 +112,7 @@ services:
         ipv4_address: ${API_IP_ADDR}
   api_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: ${NODE_NAME}-api_proxy
+    container_name: api_proxy
     depends_on:
       - "api"
     environment:
@@ -122,7 +122,7 @@ services:
       CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
       CONNECT_SIDECAR_FOR: "api-v1"
     volumes:
-    - "./fake-service/service_config_${NODE_NAME}:/config"
+    - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: ["consul", "connect", "envoy"]
     network_mode: "service:api"

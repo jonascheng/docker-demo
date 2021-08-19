@@ -25,7 +25,7 @@ connect {
   enabled = true
 }
 
-advertise_addr = "10.6.0.2"
+# advertise_addr = "10.6.0.2"
 enable_central_service_config = true
 
 config_entries {
@@ -33,7 +33,7 @@ config_entries {
     {
       kind = "proxy-defaults"
       name = "global"
-      
+
       config {
       }
     }
