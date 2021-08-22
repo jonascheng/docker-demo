@@ -12,8 +12,7 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
 2. Navigate to this directory.
-3. `docker-compose --env-file ./config/server1.env up -d`
-4. `docker-compose --env-file ./config/server2.env up -d`
+3. `./up.sh`
 
 ## Testing procedure
 
