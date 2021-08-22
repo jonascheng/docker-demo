@@ -1,13 +1,13 @@
 service {
   name = "api"
-  id = "api-v1"
+  id = "api-uuid1"
   address = "10.5.0.5"
   port = 9090
-  
-  connect { 
+
+  connect {
     sidecar_service {
       port = 20000
-      
+
       check {
         name = "Connect Envoy Sidecar"
         tcp = "api:20000"
@@ -16,6 +16,6 @@ service {
 
       proxy {
       }
-    }  
+    }
   }
 }

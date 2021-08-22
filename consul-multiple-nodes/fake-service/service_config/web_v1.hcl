@@ -3,11 +3,11 @@ service {
   id = "web-v1"
   address = "10.5.0.4"
   port = 9090
-  
-  connect { 
+
+  connect {
     sidecar_service {
       port = 20000
-      
+
       check {
         name = "Connect Envoy Sidecar"
         tcp = "web:20000"
@@ -21,6 +21,6 @@ service {
           local_bind_port = 9091
         }
       }
-    }  
+    }
   }
 }

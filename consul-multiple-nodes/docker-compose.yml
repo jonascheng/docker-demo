@@ -60,7 +60,9 @@ services:
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
-    command: ["consul", "connect", "envoy"]
+    command: >
+      sh -c "sleep 3 &&
+            consul connect envoy"
     network_mode: "service:ingress"
 
   web:
@@ -96,12 +98,14 @@ services:
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
-    command: ["consul", "connect", "envoy"]
+    command: >
+      sh -c "sleep 3 &&
+            consul connect envoy"
     network_mode: "service:web"
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: api
+    container_name: api1
     depends_on:
       - "consul-server"
     environment:
@@ -121,7 +125,7 @@ services:
         ipv4_address: ${API_IP_ADDR}
   api_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: api_proxy
+    container_name: api1_proxy
     depends_on:
       - "api"
     environment:
@@ -129,11 +133,13 @@ services:
       CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
       SERVICE_CONFIG: /config/api_v1.hcl
       CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "api-v1"
+      CONNECT_SIDECAR_FOR: "api-uuid1"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
-    command: ["consul", "connect", "envoy"]
+    command: >
+      sh -c "sleep 3 &&
+            consul connect envoy"
     network_mode: "service:api"
 
 networks:
