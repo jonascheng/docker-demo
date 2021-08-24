@@ -1,0 +1,16 @@
+---
+version: "3.7"
+
+services:
+
+  pcs:
+    build: ./pcs/
+    image: jonascheng/pcs
+    container_name: pcs
+    privileged: true
+    volumes:
+    - "/sys/fs/cgroup:/sys/fs/cgroup"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "/run/docker.sock:/run/docker.sock"
+    - "/usr/bin/docker:/usr/bin/docker:ro"
+    network_mode: host
