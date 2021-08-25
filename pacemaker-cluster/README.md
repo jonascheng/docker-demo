@@ -80,20 +80,79 @@ Check pcs status:
 
 ```console
 [root@server1 /]# pcs status
+Cluster name: mycluster
+
+WARNINGS:
+Corosync and pacemaker node names do not match (IPs used in setup?)
+
+Stack: corosync
+Current DC: server1 (version 1.1.23-1.el7_9.1-9acf116022) - partition with quorum
+Last updated: Wed Aug 25 03:21:46 2021
+Last change: Wed Aug 25 03:06:03 2021 by root via cibadmin on server1
+
+2 nodes configured
+1 resource instance configured
+
+Online: [ server1 server2 ]
+
+Full list of resources:
+
+ Resource Group: mygroup
+     virtual-ip	(ocf::heartbeat:IPaddr2):	Started server1 # 此條表示 vip 目前在 server1 上執行
+
+Daemon Status:
+  corosync: active/enabled
+  pacemaker: active/enabled
+  pcsd: active/enabled
 ```
 
 Transit virtual IP to server2 by stopping server1
 
 ```console
-[root@server1 /]# pcs cluster stop 10.1.0.20
+[root@server1 /]# pcs cluster stop 10.1.0.10 --force
+# or, by stopping container
+vagrant@server1:/vagrant$ docker-compose down
 ```
 
-Check pcs status again:
+Check pcs status again on server2:
 
 ```console
-[root@server1 /]# pcs status
+[root@server2 /]# pcs status
+Cluster name: mycluster
+
+WARNINGS:
+Corosync and pacemaker node names do not match (IPs used in setup?)
+
+Stack: corosync
+Current DC: server2 (version 1.1.23-1.el7_9.1-9acf116022) - partition with quorum
+Last updated: Wed Aug 25 03:24:19 2021
+Last change: Wed Aug 25 03:21:26 2021 by hacluster via crmd on server1
+
+2 nodes configured
+1 resource instance configured
+
+Online: [ server2 ]
+OFFLINE: [ server1 ]
+
+Full list of resources:
+
+ Resource Group: mygroup
+     virtual-ip	(ocf::heartbeat:IPaddr2):	Started server2 # 此條表示 vip 在 server2 上執行了
+
+Daemon Status:
+  corosync: active/enabled
+  pacemaker: active/enabled
+  pcsd: active/enabled
 ```
 
+Bring server1 back online
+
+```console
+[root@server1 /]# pcs cluster start 10.1.0.10
+# or, by starting container
+vagrant@server1:/vagrant$ docker-compose up -d
+vagrant@server1:/vagrant$ docker exec -it pcs bash -c "pcs cluster start"
+```
 
 ## References
 

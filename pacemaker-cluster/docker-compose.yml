@@ -13,4 +13,8 @@ services:
     - "/etc/localtime:/etc/localtime:ro"
     - "/run/docker.sock:/run/docker.sock"
     - "/usr/bin/docker:/usr/bin/docker:ro"
+    # persist pcsd, corosync and pacemaker configuration files
+    - "/var/lib/pcsd/:/var/lib/pcsd"
+    - "/etc/corosync:/etc/corosync"
+    - "/var/lib/pacemaker:/var/lib/pacemaker"
     network_mode: host
