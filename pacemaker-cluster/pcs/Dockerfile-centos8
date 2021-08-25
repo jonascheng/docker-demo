@@ -1,0 +1,17 @@
+FROM centos:8
+
+ENV container=docker
+
+RUN yum -y --setopt=tsflags=nodocs upgrade \
+    && dnf -y install passwd dnf-plugin-config-manager \
+    && dnf config-manager --set-enabled ha \
+    && yum -y --setopt=tsflags=nodocs install pcs which \
+    && yum -y clean all
+
+RUN mkdir -p /etc/systemd/system-preset/
+RUN echo 'enable pcsd.service' > /etc/systemd/system-preset/00-pcsd.preset
+RUN systemctl enable pcsd
+
+EXPOSE 2224
+
+CMD ["/usr/lib/systemd/systemd", "--system"]

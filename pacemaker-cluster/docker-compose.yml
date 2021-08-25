@@ -4,9 +4,13 @@ version: "3.7"
 services:
 
   pcs:
-    build: ./pcs/
-    image: jonascheng/pcs
+    build:
+      context: ./pcs
+      dockerfile: Dockerfile-${OS_RELEASE}
+    image: jonascheng/pcs:${OS_RELEASE}
     container_name: pcs
+    environment:
+      OS_RELEASE: ${OS_RELEASE}
     privileged: true
     volumes:
     - "/sys/fs/cgroup:/sys/fs/cgroup"
@@ -14,7 +18,7 @@ services:
     - "/run/docker.sock:/run/docker.sock"
     - "/usr/bin/docker:/usr/bin/docker:ro"
     # persist pcsd, corosync and pacemaker configuration files
-    - "/var/lib/pcsd/:/var/lib/pcsd"
-    - "/etc/corosync:/etc/corosync"
-    - "/var/lib/pacemaker:/var/lib/pacemaker"
+    - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
+    - "/mnt/data/pcs/etc/corosync:/etc/corosync"
+    - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
     network_mode: host

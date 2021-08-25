@@ -1,7 +1,25 @@
 #!/bin/bash
 
-docker exec -it pcs bash -c "pcs cluster auth -u hacluster -p 12345678 10.1.0.10 10.1.0.20"
-docker exec -it pcs bash -c "pcs cluster setup --name mycluster 10.1.0.10 10.1.0.20"
+if [[ -z "${OS_RELEASE}" && -f .env ]]
+then
+  export $(cat .env | xargs)
+fi
+
+echo ${OS_RELEASE}
+case ${OS_RELEASE} in
+  centos7 )
+    docker exec -it pcs bash -c "pcs cluster auth -u hacluster -p 12345678 10.1.0.10 10.1.0.20"
+    docker exec -it pcs bash -c "pcs cluster setup --name mycluster 10.1.0.10 10.1.0.20"
+    ;;
+  centos8 )
+    docker exec -it pcs bash -c "pcs host -u hacluster -p 12345678 auth 10.1.0.10 10.1.0.20"
+    docker exec -it pcs bash -c "pcs cluster setup mycluster 10.1.0.10 10.1.0.20"
+    ;;
+  * )
+    docker exec -it pcs bash -c "pcs host -u hacluster -p 12345678 auth 10.1.0.10 10.1.0.20"
+    docker exec -it pcs bash -c "pcs cluster setup mycluster 10.1.0.10 10.1.0.20"
+    ;;
+esac
 
 docker exec -it pcs bash -c "pcs cluster start --all"
 docker exec -it pcs bash -c "pcs cluster enable --all"
