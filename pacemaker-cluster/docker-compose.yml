@@ -15,10 +15,13 @@ services:
     volumes:
     - "/sys/fs/cgroup:/sys/fs/cgroup"
     - "/etc/localtime:/etc/localtime:ro"
+    - "/tmp/data/pcs/run:/run"
     - "/run/docker.sock:/run/docker.sock"
     - "/usr/bin/docker:/usr/bin/docker:ro"
     # persist pcsd, corosync and pacemaker configuration files
     - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
     - "/mnt/data/pcs/etc/corosync:/etc/corosync"
     - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
+    # mount app
+    - "./app/:/home/app"
     network_mode: host

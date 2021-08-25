@@ -58,10 +58,10 @@ Create virtual IP:
 [root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
 ```
 
-Define docker resource image:
+Define docker-compose resource:
 
 ```console
-[root@server1 /]#
+[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op start interval=240s --group mygroup
 ```
 
 Disable stonith (this will start the cluster):
