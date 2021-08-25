@@ -36,7 +36,7 @@ You can create cluster in the web ui, or via cli. Every node in the cluster must
 ```console
 [root@server1 /]# pcs cluster auth -u hacluster -p [hapass] 10.1.0.10 10.1.0.20
 [root@server1 /]# pcs cluster setup --name mycluster 10.1.0.10 10.1.0.20
-# pcs在執行以上命令時會生產corosync.conf及修改cib.xml檔案，
+# pcs在執行以上命令時會生成/etc/corosync/corosync.conf及修改/var/lib/pacemaker/cib/cib.xml檔案，
 # corosync.conf為corosync的配置檔案，cib.xml為pacemaker的配置檔案。
 # 這兩個配置檔案是叢集的核心配置，重灌系統時建議做好這兩個配置檔案的備份。
 [root@server1 /]# pcs cluster start --all
@@ -47,14 +47,7 @@ You can create cluster in the web ui, or via cli. Every node in the cluster must
 [root@server1 /]# pcs resource defaults migration-threshold=1
 ```
 
-Check pcs and cluster status:
-
-```console
-[root@server1 /]# pcs status
-[root@server1 /]# pcs cluster status
-```
-
-Create virtual ip:
+Create virtual IP:
 
 ```console
 [root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
@@ -72,4 +65,36 @@ Disable stonith (this will start the cluster):
 [root@server1 /]# pcs property set stonith-enabled=false
 ```
 
+Check pcs and cluster status:
+
+```console
+[root@server1 /]# pcs status
+[root@server1 /]# pcs cluster status
+```
+
 You can view and modify your cluster in the web ui even when you created it in cli, but you need to add it there first (Add existing).
+
+## Test procedure
+
+Check pcs status:
+
+```console
+[root@server1 /]# pcs status
+```
+
+Transit virtual IP to server2 by stopping server1
+
+```console
+[root@server1 /]# pcs cluster stop 10.1.0.20
+```
+
+Check pcs status again:
+
+```console
+[root@server1 /]# pcs status
+```
+
+
+## References
+
+[CENTOS7構建HA叢集](https://www.itread01.com/content/1545727875.html)
