@@ -49,19 +49,25 @@ You can create cluster in the web ui, or via cli. Every node in the cluster must
 # 在兩個節點的情況下設定以下值
 [root@server1 /]# pcs property set no-quorum-policy=ignore
 # 叢集故障時候服務遷移
-[root@server1 /]# pcs resource defaults migration-threshold=1
+[root@server1 /]# pcs resource defaults update migration-threshold=1
+```
+
+Pacemaker has the concept of resource stickiness, which controls how strongly a service prefers to stay running where it is to prevent resources from moving after recovery:
+
+```console
+[root@server1 /]# pcs resource defaults update resource-stickiness=100
 ```
 
 Create virtual IP:
 
 ```console
-[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
+[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup meta resource-stickiness=10O
 ```
 
 Define docker-compose resource:
 
 ```console
-[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op start interval=240s --group mygroup
+[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op monitor interval=60s --group mygroup meta resource-stickiness=10O
 ```
 
 Disable stonith (this will start the cluster):
@@ -85,13 +91,14 @@ Check pcs status:
 
 ```console
 [root@server1 /]# pcs status
+Cluster name: mycluster
 Cluster Summary:
   * Stack: corosync
   * Current DC: 10.1.0.10 (version 2.0.5-9.el8_4.1-ba59be7122) - partition with quorum
-  * Last updated: Wed Aug 25 08:16:57 2021
-  * Last change:  Wed Aug 25 08:12:58 2021 by root via cibadmin on 10.1.0.10
+  * Last updated: Thu Aug 26 01:52:38 2021
+  * Last change:  Thu Aug 26 01:52:35 2021 by root via cibadmin on 10.1.0.10
   * 2 nodes configured
-  * 1 resource instance configured
+  * 2 resource instances configured
 
 Node List:
   * Online: [ 10.1.0.10 10.1.0.20 ]
@@ -99,6 +106,7 @@ Node List:
 Full List of Resources:
   * Resource Group: mygroup:
     * virtual-ip	(ocf::heartbeat:IPaddr2):	 Started 10.1.0.10 # 此條表示 vip 目前在 server1 上執行
+    * myapp	(ocf::heartbeat:docker-compose):	 Started 10.1.0.10 # 此條表示 app 目前在 server1 上執行
 
 Daemon Status:
   corosync: active/enabled
@@ -106,11 +114,9 @@ Daemon Status:
   pcsd: active/enabled
 ```
 
-Transit virtual IP to server2 by stopping server1
+Transit virtual IP and app to server2 by stopping server1
 
 ```console
-[root@server1 /]# pcs cluster stop 10.1.0.10 --force
-# or, by stopping container
 vagrant@server1:/vagrant$ docker-compose down
 ```
 
@@ -146,8 +152,6 @@ Daemon Status:
 Bring server1 back online
 
 ```console
-[root@server1 /]# pcs cluster start 10.1.0.10
-# or, by starting container
 vagrant@server1:/vagrant$ docker-compose up -d
 vagrant@server1:/vagrant$ docker exec -it pcs bash -c "pcs cluster start"
 ```

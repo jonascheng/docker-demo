@@ -25,9 +25,12 @@ docker exec -it pcs bash -c "pcs cluster start --all"
 docker exec -it pcs bash -c "pcs cluster enable --all"
 
 docker exec -it pcs bash -c "pcs property set no-quorum-policy=ignore"
-docker exec -it pcs bash -c "pcs resource defaults migration-threshold=1"
+docker exec -it pcs bash -c "pcs resource defaults update migration-threshold=1"
 
-docker exec -it pcs bash -c "pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup"
+docker exec -it pcs bash -c "pcs resource defaults update resource-stickiness=100"
+
+docker exec -it pcs bash -c "pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup meta resource-stickiness=10O"
+docker exec -it pcs bash -c "pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op monitor interval=60s --group mygroup meta resource-stickiness=10O"
 
 docker exec -it pcs bash -c "pcs property set stonith-enabled=false"
 
