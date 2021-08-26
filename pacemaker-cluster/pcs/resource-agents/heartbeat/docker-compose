@@ -65,7 +65,7 @@ Caveat: 1. A YAML file (docker-compose.yml) and an optional Dockerfile
         2. It is suggested to test run the docker-compose and verify on all cluster nodes
            before enabling this agent.
 </longdesc>
-<shortdesc lang="en">This script manages docker services using docker-compose.</shortdesc> 
+<shortdesc lang="en">This script manages docker services using docker-compose.</shortdesc>
 
 <parameters>
 
@@ -140,9 +140,10 @@ docker_compose_status()
 	if [ -r "$DIR/$YML" ]; then
 
 		DKPS=$(cd $DIR; $COMMAND -f $YML ps -q)
-		STAT_MSG=$(docker ps --no-trunc | grep -E $(echo "$DKPS" | tr '\n' '|') | expand)
-		LNWTH=$(echo "$STAT_MSG" | head -n1 | wc -c)
-		STATEPOS=$(echo "$STAT_MSG" | head -n1 | egrep -o 'STATUS.*$' | wc -c)
+		HEAD_MSG=$(docker ps --no-trunc | head -n1)
+		STAT_MSG=$(docker ps --no-trunc | grep -E $(echo "$DKPS" | tr '\n' '|' | sed 's/|$//g') | expand)
+		LNWTH=$(echo "$HEAD_MSG" | head -n1 | wc -c)
+		STATEPOS=$(echo "$HEAD_MSG" | head -n1 | egrep -o 'STATUS.*$' | wc -c)
 		OFFSET=$(($LNWTH-$STATEPOS+1))
 
 		if [ -n "$DKPS" ]; then
@@ -151,7 +152,7 @@ docker_compose_status()
 			PSNU=0
 		fi
 		UPNU=$(echo "$STAT_MSG" | cut -c ${OFFSET}- | awk '{print $1}' | grep -w '^Up' | wc -l)
-		
+
 		if [ "${PSNU:-0}" -ne 0 ]; then
 			if [ ${UPNU:-0} -eq 0 ]; then
 				ocf_log info "docker service is running but not in up state."
@@ -260,15 +261,15 @@ if [ $# -ne 1 ]; then
 fi
 
 case $1 in
-	start)	
+	start)
 		docker_compose_start
 		;;
 
-	stop)	
+	stop)
 		docker_compose_stop
 		;;
 
-	status)	
+	status)
 		docker_compose_status
 		;;
 
