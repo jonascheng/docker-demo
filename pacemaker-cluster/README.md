@@ -15,6 +15,7 @@ Deploy a two-node cluster with Pacemaker and Corosync managed by pcs.
 * Manage virtual IP 10.1.0.30 by `pcs`.
 * Manage application with docker-compose by `pcs`.
 
+![Architecture](imgs/pacemaker-cluster.png)
 
 ## Deployment procedure
 
