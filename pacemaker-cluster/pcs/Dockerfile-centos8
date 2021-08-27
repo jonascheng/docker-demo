@@ -15,6 +15,10 @@ RUN chmod u+x /usr/bin/docker-compose
 # copy pcs RA - docker-compose
 COPY ./resource-agents/heartbeat/docker-compose /usr/lib/ocf/resource.d/heartbeat
 
+# copy app
+WORKDIR /home/app
+COPY ./app/docker-compose.yml /home/app/docker-compose.yml
+
 RUN mkdir -p /etc/systemd/system-preset/
 RUN echo 'enable pcsd.service' > /etc/systemd/system-preset/00-pcsd.preset
 RUN systemctl enable pcsd

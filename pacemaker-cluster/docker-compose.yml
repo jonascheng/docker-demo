@@ -9,9 +9,10 @@ services:
       dockerfile: Dockerfile-${OS_RELEASE}
     image: jonascheng/pcs:${OS_RELEASE}
     container_name: pcs
-    environment:
-      OS_RELEASE: ${OS_RELEASE}
     privileged: true
+    deploy:
+      restart_policy:
+        condition: on-failure
     volumes:
     - "/sys/fs/cgroup:/sys/fs/cgroup"
     - "/etc/localtime:/etc/localtime:ro"
@@ -22,6 +23,4 @@ services:
     - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
     - "/mnt/data/pcs/etc/corosync:/etc/corosync"
     - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
-    # mount app
-    - "./app/:/home/app"
     network_mode: host

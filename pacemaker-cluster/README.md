@@ -85,6 +85,17 @@ Check pcs and cluster status:
 
 You can view and modify your cluster in the web ui even when you created it in cli, but you need to add it there first (Add existing).
 
+Enable corosync and pacemaker services to start at boot:
+
+```console
+# in server1 container
+[root@server1 /]# systemctl enable corosync.service
+[root@server1 /]# systemctl enable pacemaker.service
+# in server2 container
+[root@server2 /]# systemctl enable corosync.service
+[root@server2 /]# systemctl enable pacemaker.service
+```
+
 ## Test procedure
 
 Check pcs status:
@@ -117,7 +128,7 @@ Daemon Status:
 Transit virtual IP and app to server2 by stopping server1
 
 ```console
-vagrant@server1:/vagrant$ docker-compose down
+$> vagrant halt server1
 ```
 
 Check pcs status again on server2:
@@ -152,8 +163,7 @@ Daemon Status:
 Bring server1 back online
 
 ```console
-vagrant@server1:/vagrant$ docker-compose up -d
-vagrant@server1:/vagrant$ docker exec -it pcs bash -c "pcs cluster start"
+$> vagrant up server1
 ```
 
 ## References
