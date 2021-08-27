@@ -8,6 +8,14 @@ Deploy a two-node cluster with Pacemaker and Corosync managed by pcs.
 - VirtualBox
 - Linux or OSX
 
+## Architecture
+
+* Two VMs with IP 10.1.0.10 and 10.1.0.20 respectively.
+* Run pacemaker and corosync as a container `pcs`.
+* Manage virtual IP 10.1.0.30 by `pcs`.
+* Manage application with docker-compose by `pcs`.
+
+
 ## Deployment procedure
 
 Pacemaker in this image is able to manage docker containers on the host - that's why I'm exposing docker socket and binary to the image (don't expose if not needed). Cgroup fs and privileged mode is required by the systemd in the container and `--net=host` is required so the pacemaker is able to manage virtual IP.
