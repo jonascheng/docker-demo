@@ -1,0 +1,26 @@
+---
+version: "3.7"
+
+services:
+
+  pcs:
+    build:
+      context: ./pcs
+      dockerfile: Dockerfile-${OS_RELEASE}
+    image: jonascheng/pcs:${OS_RELEASE}
+    container_name: pcs
+    privileged: true
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+    - "/sys/fs/cgroup:/sys/fs/cgroup"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "/tmp/data/pcs/run:/run"
+    - "/run/docker.sock:/run/docker.sock"
+    - "/usr/bin/docker:/usr/bin/docker:ro"
+    # persist pcsd, corosync and pacemaker configuration files
+    - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
+    - "/mnt/data/pcs/etc/corosync:/etc/corosync"
+    - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
+    network_mode: host
