@@ -1,6 +1,6 @@
 ## Overview
 
-Deploy a two-node cluster with Pacemaker and Corosync managed by pcs.
+Deploy a two-node cluster with Pacemaker and Corosync managed by pcs. In addition to project [`pacemaker-cluster`](https://github.com/jonascheng/docker-demo/tree/main/pacemaker-cluster), this project also leverage DRBD to replicate data volume.
 
 ## Prerequisites
 
@@ -13,9 +13,7 @@ Deploy a two-node cluster with Pacemaker and Corosync managed by pcs.
 * Two VMs with IP 10.1.0.10 and 10.1.0.20 respectively.
 * Run pacemaker and corosync as a container `pcs`.
 * Manage virtual IP 10.1.0.30 by `pcs`.
-* Manage application with docker-compose by `pcs`.
-
-![Architecture](imgs/pacemaker-cluster.png)
+* Manage mysql with docker-compose by `pcs`.
 
 ## Deployment procedure
 
@@ -23,24 +21,59 @@ Pacemaker in this image is able to manage docker containers on the host - that's
 
 ```console
 $> vagrant up
-# in one terminal
 $> vagrant ssh server1
-vagrant@server1:~$ cd /vagrant/
-vagrant@server1:/vagrant$ docker-compose build; docker-compose up -d
-vagrant@server1:/vagrant$ docker exec -it pcs bash
-[root@server1 /]# echo [hapass] | passwd hacluster --stdin
-# in another terminal
-$> vagrant ssh server2
-vagrant@server2:~$ cd /vagrant/
-vagrant@server2:/vagrant$ docker-compose build; docker-compose up -d
-vagrant@server2:/vagrant$ docker exec -it pcs bash
-[root@server2 /]# echo [hapass] | passwd hacluster --stdin
+# prompt server1 to primay role
+vagrant@server1:/vagrant$ sudo drbdadm -- --overwrite-data-of-peer primary mygroup
+# wait sync'ed status to 100%
+vagrant@server1:/vagrant$ watch -n 0.5 cat /proc/drbd
 ```
 
-Pcs web ui will be available on the https://localhost:2224/. To log in, you need to set password for the `hacluster` linux user inside of the image:
-Then you can use `hacluster` as the login name and your password in the web ui.
+OutPut from Primary node
 
-You can create cluster in the web ui, or via cli. Every node in the cluster must be running pcs docker container and must have setup password for the hacluster user. Then, on one of the nodes in the cluster run:
+```console
+version: 8.4.10 (api:1/proto:86-101)
+srcversion: 473968AD625BA317874A57E
+ 0: cs:SyncSource ro:Primary/Secondary ds:UpToDate/Inconsistent C r-----
+    ns:2956160 nr:0 dw:0 dr:2956160 al:8 bm:0 lo:0 pe:13 ua:0 ap:0 ep:1 wo:f oos:7530908
+        [====>...............] sync'ed: 28.3% (7352/10236)M
+        finish: 0:03:42 speed: 33,904 (33,956) K/sec
+```
+
+OutPut from Second node as well
+
+```console
+version: 8.4.10 (api:1/proto:86-101)
+srcversion: 473968AD625BA317874A57E
+ 0: cs:SyncTarget ro:Secondary/Primary ds:Inconsistent/UpToDate C r-----
+    ns:0 nr:3917184 dw:3917184 dr:0 al:8 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:6568220
+        [======>.............] sync'ed: 37.4% (6412/10236)M
+        finish: 0:03:05 speed: 35,360 (34,060) want: 50,040 K/sec
+```
+
+After Finish this. Create filesystem on DRBD device. Like this:
+
+```console
+vagrant@server1:/vagrant$ sudo mkfs.ext4 /dev/drbd0
+# create mount point for DRBD device on primary node
+vagrant@server1:/vagrant$ sudo mount -t ext4 /dev/drbd0 /mnt/data
+```
+
+Verify DRBD works by dropping any file in /mnt/data, after that make Secondary node as Primary node. Run below command on `server1`
+
+```console
+vagrant@server1:/vagrant$ sudo umount /mnt/data
+vagrant@server1:/vagrant$ sudo drbdadm secondary mygroup
+```
+
+After this jump on Secondary machine, i.e `server2`. Create mount point for DRBD device on secondary node. The mount point can be the same or different from `server1`. In my case use the same.
+
+```console
+$> vagrant ssh server2
+vagrant@server2:/vagrant$ sudo drbdadm -- --overwrite-data-of-peer primary mygroup
+vagrant@server2:/vagrant$ sudo mount -t ext4 /dev/drbd0 /mnt/data
+```
+
+Check if the file(s) have been sync'ed to `server2`.
 
 ```console
 # for CentOS7
@@ -73,11 +106,11 @@ Create virtual IP:
 [root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup meta resource-stickiness=10O
 ```
 
-Define docker-compose resource:
+<!-- Define docker-compose resource:
 
 ```console
 [root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op monitor interval=60s --group mygroup meta resource-stickiness=10O
-```
+``` -->
 
 Disable stonith (this will start the cluster):
 

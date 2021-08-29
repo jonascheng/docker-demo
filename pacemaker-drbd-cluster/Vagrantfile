@@ -1,24 +1,44 @@
-$script = <<-SCRIPT
+# Enable the experimental disks feature via environment variable, requires Vagrant >=2.2.8.
+ENV["VAGRANT_EXPERIMENTAL"] = "disks"
+
+$drbd = <<-SCRIPT
+sudo apt update
+sudo apt install -y drbd-utils
+sudo modprobe drbd
+sudo cp /vagrant/drbd/drbd.conf /etc/drbd.conf
+sudo drbdadm create-md mygroup
+sudo drbdadm up mygroup
+sudo systemctl enable drbd
+sudo systemctl start drbd
+sudo mkdir /mnt/data
+SCRIPT
+
+$docker_compose = <<-SCRIPT
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "boxomatic/ubuntu-18.04"
+  config.vm.box = "boxomatic/debian-10"
   config.vm.box_version = "20210723.0.1"
   config.vm.provision "docker"
-  config.vm.provision "shell", inline: $script
+  config.vm.provision "shell", inline: $docker_compose
+  config.vm.provision "shell", inline: $drbd
 
   config.vm.define "server1" do |node|
     node.vm.hostname = "server1"
     node.vm.network "private_network", ip: "10.1.0.10", hostname: true
     node.vm.network "forwarded_port", guest: 2224, host: 2224, protocol: "tcp"
+    # additional data disk, sdb
+    node.vm.disk :disk, name: "data", size: "10GB"
   end
 
   config.vm.define "server2" do |node|
     node.vm.hostname = "server2"
     node.vm.network "private_network", ip: "10.1.0.20", hostname: true
+    # additional data disk, sdb
+    node.vm.disk :disk, name: "data", size: "10GB"
   end
 
 end
