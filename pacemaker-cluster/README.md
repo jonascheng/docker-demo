@@ -58,7 +58,7 @@ You can create cluster in the web ui, or via cli. Every node in the cluster must
 # 在兩個節點的情況下設定以下值
 [root@server1 /]# pcs property set no-quorum-policy=ignore
 # 叢集故障時候服務遷移
-[root@server1 /]# pcs resource defaults update migration-threshold=1
+# [root@server1 /]# pcs resource defaults update migration-threshold=1
 ```
 
 Pacemaker has the concept of resource stickiness, which controls how strongly a service prefers to stay running where it is to prevent resources from moving after recovery:
@@ -70,13 +70,17 @@ Pacemaker has the concept of resource stickiness, which controls how strongly a 
 Create virtual IP:
 
 ```console
-[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup meta resource-stickiness=10O
+[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
 ```
 
 Define docker-compose resource:
 
 ```console
-[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op monitor interval=60s --group mygroup meta resource-stickiness=10O
+[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app --group mygroup
+[root@server1 /]# pcs resource update myapp ocf:heartbeat:docker-compose op monitor interval=60s timeout=10s on-fail=restart
+[root@server1 /]# pcs resource update myapp ocf:heartbeat:docker-compose op start interval=0s timeout=240s on-fail=restart
+[root@server1 /]# pcs resource update myapp ocf:heartbeat:docker-compose op stop interval=0s timeout=20s on-fail=ignore
+
 ```
 
 Disable stonith (this will start the cluster):
