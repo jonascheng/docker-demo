@@ -5,12 +5,12 @@ $drbd = <<-SCRIPT
 sudo apt update
 sudo apt install -y drbd-utils
 sudo modprobe drbd
-sudo cp /vagrant/drbd/drbd.conf /etc/drbd.conf
-sudo drbdadm create-md mygroup
-sudo drbdadm up mygroup
-sudo systemctl enable drbd
-sudo systemctl start drbd
-sudo mkdir /mnt/data
+# sudo cp /vagrant/drbd/drbd.conf /etc/drbd.conf
+# sudo drbdadm create-md mydrbd
+# sudo drbdadm up mydrbd
+# sudo systemctl enable drbd
+# sudo systemctl start drbd
+sudo mkdir /mnt/drbd
 SCRIPT
 
 $docker_compose = <<-SCRIPT
@@ -31,14 +31,14 @@ Vagrant.configure("2") do |config|
     node.vm.network "private_network", ip: "10.1.0.10", hostname: true
     node.vm.network "forwarded_port", guest: 2224, host: 2224, protocol: "tcp"
     # additional data disk, sdb
-    node.vm.disk :disk, name: "data", size: "10GB"
+    node.vm.disk :disk, name: "data", size: "1GB"
   end
 
   config.vm.define "server2" do |node|
     node.vm.hostname = "server2"
     node.vm.network "private_network", ip: "10.1.0.20", hostname: true
     # additional data disk, sdb
-    node.vm.disk :disk, name: "data", size: "10GB"
+    node.vm.disk :disk, name: "data", size: "1GB"
   end
 
 end

@@ -3,7 +3,8 @@ FROM centos:8
 ENV container=docker
 
 RUN yum -y --setopt=tsflags=nodocs upgrade \
-    && dnf -y install passwd dnf-plugin-config-manager \
+    && dnf -y install https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm \
+    && dnf -y install passwd dnf-plugin-config-manager drbd90-utils \
     && dnf config-manager --set-enabled ha \
     && yum -y --setopt=tsflags=nodocs install pcs which curl \
     && yum -y clean all
@@ -16,8 +17,8 @@ RUN chmod u+x /usr/bin/docker-compose
 COPY ./resource-agents/heartbeat/docker-compose /usr/lib/ocf/resource.d/heartbeat
 
 # copy app
-WORKDIR /home/app
-COPY ./app/docker-compose.yml /home/app/docker-compose.yml
+# WORKDIR /home/app
+# COPY ./app/docker-compose.yml /home/app/docker-compose.yml
 
 RUN mkdir -p /etc/systemd/system-preset/
 RUN echo 'enable pcsd.service' > /etc/systemd/system-preset/00-pcsd.preset
