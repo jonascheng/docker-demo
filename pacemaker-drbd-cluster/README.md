@@ -54,7 +54,6 @@ Then initialize the DRBD resource on both nodes, separately
 <!--
 # prompt server1 to primay role
 # [root@server1 /]# drbdadm primary --force mydrbd
-# [root@server1 /]# drbdadm -- --overwrite-data-of-peer primary mydrbd
 # wait sync'ed status to 100%
 # [root@server1 /]# watch -n 0.5 cat /proc/drbd
 
