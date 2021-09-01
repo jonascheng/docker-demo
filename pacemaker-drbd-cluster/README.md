@@ -51,11 +51,14 @@ Then initialize the DRBD resource on both nodes, separately
 [root@server2 /]# systemctl enable drbd
 ```
 
-<!--
-# prompt server1 to primay role
-# [root@server1 /]# drbdadm primary --force mydrbd
+Prompt server1 to primay role and format the disk
+
+```console
+[root@server1 /]# drbdadm primary --force mydrbd
+[root@server1 /]# mkfs.ext4 /dev/drbd0
 # wait sync'ed status to 100%
-# [root@server1 /]# watch -n 0.5 cat /proc/drbd
+# [root@server1 /]# watch cat /proc/drbd
+```
 
 OutPut from Primary node
 
@@ -79,10 +82,11 @@ srcversion: 473968AD625BA317874A57E
         finish: 0:03:05 speed: 35,360 (34,060) want: 50,040 K/sec
 ```
 
+<!--
+
 After Finish this. Create filesystem on DRBD device. Like this:
 
 ```console
-[root@server1 /]# mkfs.ext4 /dev/drbd0
 # create mount point for DRBD device on primary node
 [root@server1 /]# mount -t ext4 /dev/drbd0 /mnt/drbd
 ```
@@ -265,4 +269,5 @@ $> vagrant up server1
 
 ## References
 
+[Setup KVM DRBD Cluster File System Pacemaker CentOS 8](https://www.golinuxcloud.com/how-to-setup-drbd-cluster-file-system-centos8/#13_Verify_DRBD_Resource_and_Device_Status)
 [CENTOS7構建HA叢集](https://www.itread01.com/content/1545727875.html)

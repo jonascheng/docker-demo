@@ -27,6 +27,10 @@ services:
     # drbd configuration files and disk volumn, 
     # /dev and /etc/drbd.conf are required
     - "/dev:/dev"
-    - "/mnt:/mnt"
+    - type: bind
+      source: /mnt
+      target: /mnt
+      bind:
+        propagation: shared
     - "/etc/drbd.conf:/etc/drbd.conf"
     network_mode: host
