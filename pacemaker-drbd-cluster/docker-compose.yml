@@ -19,8 +19,18 @@ services:
     - "/tmp/data/pcs/run:/run"
     - "/run/docker.sock:/run/docker.sock"
     - "/usr/bin/docker:/usr/bin/docker:ro"
+    - "/lib/modules/4.19.0-17-amd64:/lib/modules/4.19.0-17-amd64"
     # persist pcsd, corosync and pacemaker configuration files
     - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
     - "/mnt/data/pcs/etc/corosync:/etc/corosync"
     - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
+    # drbd configuration files and disk volumn,
+    # /dev and /etc/drbd.conf are required
+    - "/dev:/dev"
+    - type: bind
+      source: /mnt
+      target: /mnt
+      bind:
+        propagation: rshared
+    - "/etc/drbd.conf:/etc/drbd.conf"
     network_mode: host

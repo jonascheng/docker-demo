@@ -1,6 +1,6 @@
 ## Overview
 
-Deploy a two-node cluster with Pacemaker and Corosync managed by pcs. In addition to project [`pacemaker-cluster`](https://github.com/jonascheng/docker-demo/tree/main/pacemaker-cluster), this project also leverage DRBD to replicate data volume.
+Deploy a two-node cluster with Pacemaker and Corosync managed by pcs. In addition to project [`pacemaker-cluster`](https://github.com/jonascheng/docker-demo/tree/main/pacemaker-cluster), this project also leverage DRBD9 to replicate data volume.
 
 ## Prerequisites
 
@@ -21,11 +21,43 @@ Pacemaker in this image is able to manage docker containers on the host - that's
 
 ```console
 $> vagrant up
+# in one terminal
 $> vagrant ssh server1
-# prompt server1 to primay role
-vagrant@server1:/vagrant$ sudo drbdadm -- --overwrite-data-of-peer primary mygroup
+vagrant@server1:~$ cd /vagrant/
+vagrant@server1:/vagrant$ docker-compose build; docker-compose up -d
+vagrant@server1:/vagrant$ docker exec -it pcs bash
+[root@server1 /]# echo [hapass] | passwd hacluster --stdin
+# in another terminal
+$> vagrant ssh server2
+vagrant@server2:~$ cd /vagrant/
+vagrant@server2:/vagrant$ docker-compose build; docker-compose up -d
+vagrant@server2:/vagrant$ docker exec -it pcs bash
+[root@server2 /]# echo [hapass] | passwd hacluster --stdin
+```
+
+A DRBD configuration `/etc/drbd.conf` has been preset in both nodes, feel free to review.
+Then initialize the DRBD resource on both nodes, separately
+
+```
+# back to the 1st terminal
+[root@server1 /]# drbdadm create-md mydrbd
+[root@server1 /]# drbdadm up mydrbd
+[root@server1 /]# systemctl start drbd
+[root@server1 /]# systemctl enable drbd
+# back to the 2nd terminal
+[root@server2 /]# drbdadm create-md mydrbd
+[root@server2 /]# drbdadm up mydrbd
+[root@server2 /]# systemctl start drbd
+[root@server2 /]# systemctl enable drbd
+```
+
+Prompt server1 to primay role and format the disk
+
+```console
+[root@server1 /]# drbdadm primary --force mydrbd
+[root@server1 /]# mkfs.ext4 /dev/drbd0
 # wait sync'ed status to 100%
-vagrant@server1:/vagrant$ watch -n 0.5 cat /proc/drbd
+# [root@server1 /]# watch cat /proc/drbd
 ```
 
 OutPut from Primary node
@@ -50,35 +82,37 @@ srcversion: 473968AD625BA317874A57E
         finish: 0:03:05 speed: 35,360 (34,060) want: 50,040 K/sec
 ```
 
+<!--
+
 After Finish this. Create filesystem on DRBD device. Like this:
 
 ```console
-vagrant@server1:/vagrant$ sudo mkfs.ext4 /dev/drbd0
 # create mount point for DRBD device on primary node
-vagrant@server1:/vagrant$ sudo mount -t ext4 /dev/drbd0 /mnt/data
+[root@server1 /]# mount -t ext4 /dev/drbd0 /mnt/drbd
 ```
 
-Verify DRBD works by dropping any file in /mnt/data, after that make Secondary node as Primary node. Run below command on `server1`
+Verify DRBD works by dropping any file in /mnt/drbd, after that make Secondary node as Primary node. Run below command on `server1`
 
 ```console
-vagrant@server1:/vagrant$ sudo umount /mnt/data
-vagrant@server1:/vagrant$ sudo drbdadm secondary mygroup
+[root@server1 /]# umount /mnt/drbd
+[root@server1 /]# drbdadm secondary mydrbd
 ```
 
 After this jump on Secondary machine, i.e `server2`. Create mount point for DRBD device on secondary node. The mount point can be the same or different from `server1`. In my case use the same.
 
 ```console
 $> vagrant ssh server2
-vagrant@server2:/vagrant$ sudo drbdadm -- --overwrite-data-of-peer primary mygroup
-vagrant@server2:/vagrant$ sudo mount -t ext4 /dev/drbd0 /mnt/data
+vagrant@server1:/vagrant$ docker-compose build; docker-compose up -d
+vagrant@server1:/vagrant$ docker exec -it pcs bash
+[root@server2 /]# drbdadm -- --overwrite-data-of-peer primary mydrbd
+[root@server2 /]# mount -t ext4 /dev/drbd0 /mnt/drbd
 ```
 
-Check if the file(s) have been sync'ed to `server2`.
+Check if the file(s) have been sync'ed to `server2`. -->
+
+Create pcs resources.
 
 ```console
-# for CentOS7
-# [root@server1 /]# pcs cluster auth -u hacluster -p [hapass] 10.1.0.10 10.1.0.20
-# [root@server1 /]# pcs cluster setup --name mycluster 10.1.0.10 10.1.0.20
 # for CentOS8
 [root@server1 /]# pcs host -u hacluster -p [hapass] auth 10.1.0.10 10.1.0.20
 [root@server1 /]# pcs cluster setup mycluster 10.1.0.10 10.1.0.20
@@ -91,7 +125,7 @@ Check if the file(s) have been sync'ed to `server2`.
 # 在兩個節點的情況下設定以下值
 [root@server1 /]# pcs property set no-quorum-policy=ignore
 # 叢集故障時候服務遷移
-[root@server1 /]# pcs resource defaults update migration-threshold=1
+# [root@server1 /]# pcs resource defaults update migration-threshold=1
 ```
 
 Pacemaker has the concept of resource stickiness, which controls how strongly a service prefers to stay running where it is to prevent resources from moving after recovery:
@@ -103,7 +137,32 @@ Pacemaker has the concept of resource stickiness, which controls how strongly a 
 Create virtual IP:
 
 ```console
-[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup meta resource-stickiness=10O
+[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
+```
+
+Create DRBD resources, provide RA of DRBD at present by OCF Classified as linbit, its path is `/usr/lib/ocf/resource.d/linbit/drbd`.
+You need to run on two nodes at the same time, but there can only be one node (primary/secondary model) Master, and the other node is Slave; therefore, it's a comparison special cluster resources, its resource type is multi state (Multi-state) clone type, that is, the host node has Master and Slave points, and it requires two nodes when the service starts all in slave state.
+
+```console
+[root@server1 /]# pcs resource create mydrbd ocf:linbit:drbd drbd_resource=mydrbd --group mygroup
+[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op monitor role=Master interval=50s timeout=30s
+[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op monitor role=Slave interval=60s timeout=30s
+[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op start timeout=240s
+[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op stop timeout=100s
+[root@server1 /]# pcs resource promotable mydrbd meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true
+```
+
+But as a file system, you need to mount , hold drbd Mount to /data Catalog
+
+```console
+[root@server1 /]# pcs resource create drbdfs ocf:heartbeat:Filesystem device=/dev/drbd0 directory=/mnt/drbd fstype=ext4 --group mygroup
+```
+
+File system mount `drbdfs` it has to be with Master mydrbd on the same node, must be started first mydrbd then you can mount drbdfs file system, so you have to define resource constraints.
+
+```console
+[root@server1 /]# pcs constraint colocation add drbdfs with master mydrbd-clone
+[root@server1 /]# pcs constraint order promote mydrbd-clone then drbdfs
 ```
 
 <!-- Define docker-compose resource:
@@ -208,6 +267,40 @@ Bring server1 back online
 $> vagrant up server1
 ```
 
+## Recover from Split-Brain
+
+Check if DRBD somehow has got into a state where the two nodes cannot connect over the network any more. `/proc/drbd` describes the situation as follows:
+
+```console
+# on one of nodes
+version: 8.4.10 (api:1/proto:86-101)
+srcversion: 473968AD625BA317874A57E
+ 0: cs:WFConnection ro:Primary/Unknown ds:UpToDate/DUnknown C r-----
+    ns:0 nr:0 dw:1065696 dr:145 al:10 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:108
+
+# on another node
+version: 8.4.10 (api:1/proto:86-101)
+srcversion: 473968AD625BA317874A57E
+ 0: cs:StandAlone ro:Secondary/Unknown ds:UpToDate/DUnknown   r-----
+    ns:0 nr:0 dw:0 dr:0 al:0 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:57276```
+
+The situation was apparently caused by a case of split-brain, and the problem apparently was reported in kernel logs.
+
+```console
+[root@server2 /]# journalctl | grep Split-Brain
+Sep 05 08:59:12 server2 kernel: block drbd0: Split-Brain detected but unresolved, dropping connection!
+```
+
+To recover from split-brain with the following steps:
+
+On split-brain victim
+
+```console
+drbdadm secondary mydrbd
+drbdadm connect --discard-my-data mydrbd
+```
+
 ## References
 
+[Setup KVM DRBD Cluster File System Pacemaker CentOS 8](https://www.golinuxcloud.com/how-to-setup-drbd-cluster-file-system-centos8/#13_Verify_DRBD_Resource_and_Device_Status)
 [CENTOS7構建HA叢集](https://www.itread01.com/content/1545727875.html)
