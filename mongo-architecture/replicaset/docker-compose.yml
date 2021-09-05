@@ -1,0 +1,32 @@
+---
+version: '3.7'
+services:
+  rs1:
+    image: mongo:5.0
+    ports:
+      - 27041:27041
+    command: mongod --replSet RS --port 27041 --dbpath /data/db --config /resource/mongod.yml
+    volumes:
+      - ./config/mongod.yml:/resource/mongod.yml
+      - rs1-data:/data/db
+  rs2:
+    image: mongo:5.0
+    ports:
+      - 27042:27042
+    command: mongod --replSet RS --port 27042 --dbpath /data/db --config /resource/mongod.yml
+    volumes:
+      - ./config/mongod.yml:/resource/mongod.yml
+      - rs2-data:/data/db
+  rs3:
+    image: mongo:5.0
+    ports:
+      - 27043:27043
+    command: mongod --replSet RS --port 27043 --dbpath /data/db --config /resource/mongod.yml
+    volumes:
+      - ./config/mongod.yml:/resource/mongod.yml
+      - rs3-data:/data/db
+
+volumes:
+  rs1-data:
+  rs2-data:
+  rs3-data:
