@@ -24,13 +24,13 @@ services:
     - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
     - "/mnt/data/pcs/etc/corosync:/etc/corosync"
     - "/mnt/data/pcs/var/lib/pacemaker:/var/lib/pacemaker"
-    # drbd configuration files and disk volumn, 
+    # drbd configuration files and disk volumn,
     # /dev and /etc/drbd.conf are required
     - "/dev:/dev"
     - type: bind
       source: /mnt
       target: /mnt
       bind:
-        propagation: shared
+        propagation: rshared
     - "/etc/drbd.conf:/etc/drbd.conf"
     network_mode: host
