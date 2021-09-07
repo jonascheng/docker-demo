@@ -19,7 +19,7 @@ services:
     - "/tmp/data/pcs/run:/run"
     - "/run/docker.sock:/run/docker.sock"
     - "/usr/bin/docker:/usr/bin/docker:ro"
-    - "/lib/modules/4.19.0-17-amd64:/lib/modules/4.19.0-17-amd64"
+    - "/lib/modules:/lib/modules"
     # persist pcsd, corosync and pacemaker configuration files
     - "/mnt/data/pcs/var/lib/pcsd/:/var/lib/pcsd"
     - "/mnt/data/pcs/etc/corosync:/etc/corosync"
