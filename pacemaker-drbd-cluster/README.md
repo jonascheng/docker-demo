@@ -269,26 +269,18 @@ $> vagrant up server1
 
 ## Recover from Split-Brain
 
-Check if DRBD somehow has got into a state where the two nodes cannot connect over the network any more. `/proc/drbd` describes the situation as follows:
+Check if DRBD somehow has got into a state where the two nodes cannot connect over the network any more. `drbdadm status` describes the situation as follows:
 
 ```console
 # on one of nodes
-version: 8.4.10 (api:1/proto:86-101)
-srcversion: 473968AD625BA317874A57E
- 0: cs:WFConnection ro:Primary/Unknown ds:UpToDate/DUnknown C r-----
-    ns:0 nr:0 dw:1065696 dr:145 al:10 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:108
+mydrbd role:Secondary
+  disk:UpToDate
+  server2 connection:StandAlone
 
 # on another node
-version: 8.4.10 (api:1/proto:86-101)
-srcversion: 473968AD625BA317874A57E
- 0: cs:StandAlone ro:Secondary/Unknown ds:UpToDate/DUnknown   r-----
-    ns:0 nr:0 dw:0 dr:0 al:0 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:57276```
-
-The situation was apparently caused by a case of split-brain, and the problem apparently was reported in kernel logs.
-
-```console
-[root@server2 /]# journalctl | grep Split-Brain
-Sep 05 08:59:12 server2 kernel: block drbd0: Split-Brain detected but unresolved, dropping connection!
+mydrbd role:Primary
+  disk:UpToDate
+  server1 connection:StandAlone
 ```
 
 To recover from split-brain with the following steps:
@@ -298,6 +290,13 @@ On split-brain victim
 ```console
 drbdadm secondary mydrbd
 drbdadm connect --discard-my-data mydrbd
+```
+
+On split-brain survivor:
+
+```console
+drbdadm primary mydrbd
+drbdadm connect mydrbd
 ```
 
 ## References
