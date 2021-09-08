@@ -285,5 +285,5 @@ sudo drbdadm connect mydrbd
 
 ## References
 
-[Setup KVM DRBD Cluster File System Pacemaker CentOS 8](https://www.golinuxcloud.com/how-to-setup-drbd-cluster-file-system-centos8/#13_Verify_DRBD_Resource_and_Device_Status)
-[CENTOS7構建HA叢集](https://www.itread01.com/content/1545727875.html)
+* [Setup KVM DRBD Cluster File System Pacemaker CentOS 8](https://www.golinuxcloud.com/how-to-setup-drbd-cluster-file-system-centos8/#13_Verify_DRBD_Resource_and_Device_Status)
+* [CENTOS7構建HA叢集](https://www.itread01.com/content/1545727875.html)
