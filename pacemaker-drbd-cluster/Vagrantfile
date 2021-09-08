@@ -9,6 +9,15 @@ sudo cp /vagrant/drbd/drbd.conf /etc/drbd.conf
 sudo mkdir /mnt/drbd
 SCRIPT
 
+$pcs = <<-SCRIPT
+sudo yum -y --setopt=tsflags=nodocs upgrade
+sudo dnf -y install passwd dnf-plugin-config-manager
+sudo dnf config-manager --set-enabled ha
+sudo yum -y --setopt=tsflags=nodocs install pcs corosync-qdevice corosync-qnetd
+sudo systemctl enable pcsd
+sudo systemctl start pcsd
+SCRIPT
+
 $docker_compose = <<-SCRIPT
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
@@ -21,6 +30,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20210726.0.1"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $docker_compose
+  config.vm.provision "shell", inline: $pcs
   config.vm.provision "shell", inline: $drbd
 
   config.vm.define "server1" do |node|
@@ -38,9 +48,9 @@ Vagrant.configure("2") do |config|
     node.vm.disk :disk, name: "data", size: "1GB"
   end
 
-  config.vm.define "server3" do |node|
-    node.vm.hostname = "server3"
-    node.vm.network "private_network", ip: "10.1.0.30", hostname: true
-  end
+  # config.vm.define "server3" do |node|
+  #   node.vm.hostname = "server3"
+  #   node.vm.network "private_network", ip: "10.1.0.30", hostname: true
+  # end
 
 end

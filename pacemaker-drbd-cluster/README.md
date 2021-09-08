@@ -10,10 +10,12 @@ Deploy a two-node cluster with Pacemaker and Corosync managed by pcs. In additio
 
 ## Architecture
 
-* Two VMs with IP 10.1.0.10 and 10.1.0.20 respectively.
+* Three VMs with IP 10.1.0.10 and 10.1.0.20 respectively.
 * Run pacemaker and corosync as a container `pcs`.
-* Manage virtual IP 10.1.0.30 by `pcs`.
-* Manage mysql with docker-compose by `pcs`.
+* Manage virtual IP 10.1.0.40 by `pcs`.
+* Manage DRBD by `pcs`.
+
+![Architecture](imgs/pacemaker-cluster.png)
 
 ## Deployment procedure
 
@@ -21,188 +23,165 @@ Pacemaker in this image is able to manage docker containers on the host - that's
 
 ```console
 $> vagrant up
-# in one terminal
+# in 1st terminal
 $> vagrant ssh server1
 vagrant@server1:~$ cd /vagrant/
-vagrant@server1:/vagrant$ docker-compose build; docker-compose up -d
-vagrant@server1:/vagrant$ docker exec -it pcs bash
-[root@server1 /]# echo [hapass] | passwd hacluster --stdin
-# in another terminal
+vagrant@server1:/vagrant$ echo [hapass] | sudo passwd hacluster --stdin
+# in 2nd terminal
 $> vagrant ssh server2
 vagrant@server2:~$ cd /vagrant/
-vagrant@server2:/vagrant$ docker-compose build; docker-compose up -d
-vagrant@server2:/vagrant$ docker exec -it pcs bash
-[root@server2 /]# echo [hapass] | passwd hacluster --stdin
+vagrant@server2:/vagrant$ echo [hapass] | sudo passwd hacluster --stdin
 ```
 
-A DRBD configuration `/etc/drbd.conf` has been preset in both nodes, feel free to review.
-Then initialize the DRBD resource on both nodes, separately
+A DRBD configuration `/etc/drbd.conf` has been preset in three nodes, feel free to review.
+Then initialize the DRBD resource on three nodes, separately
 
 ```
 # back to the 1st terminal
-[root@server1 /]# drbdadm create-md mydrbd
-[root@server1 /]# drbdadm up mydrbd
-[root@server1 /]# systemctl start drbd
-[root@server1 /]# systemctl enable drbd
+vagrant@server1:/vagrant$ sudo drbdadm create-md mydrbd
+vagrant@server1:/vagrant$ sudo drbdadm up mydrbd
+vagrant@server1:/vagrant$ sudo systemctl start drbd
+vagrant@server1:/vagrant$ sudo systemctl enable drbd
 # back to the 2nd terminal
-[root@server2 /]# drbdadm create-md mydrbd
-[root@server2 /]# drbdadm up mydrbd
-[root@server2 /]# systemctl start drbd
-[root@server2 /]# systemctl enable drbd
+vagrant@server2:/vagrant$ sudo drbdadm create-md mydrbd
+vagrant@server2:/vagrant$ sudo drbdadm up mydrbd
+vagrant@server2:/vagrant$ sudo systemctl start drbd
+vagrant@server2:/vagrant$ sudo systemctl enable drbd
 ```
 
 Prompt server1 to primay role and format the disk
 
 ```console
-[root@server1 /]# drbdadm primary --force mydrbd
-[root@server1 /]# mkfs.ext4 /dev/drbd0
-# wait sync'ed status to 100%
-# [root@server1 /]# watch cat /proc/drbd
+vagrant@server1:/vagrant$ sudo drbdadm primary --force mydrbd
+vagrant@server1:/vagrant$ sudo mkfs.ext4 /dev/drbd0
 ```
 
-OutPut from Primary node
+<!-- On the node that you will use to host your quorum device, which is `server3` in this demo.
+Configure the quorum device with the following command.
 
 ```console
-version: 8.4.10 (api:1/proto:86-101)
-srcversion: 473968AD625BA317874A57E
- 0: cs:SyncSource ro:Primary/Secondary ds:UpToDate/Inconsistent C r-----
-    ns:2956160 nr:0 dw:0 dr:2956160 al:8 bm:0 lo:0 pe:13 ua:0 ap:0 ep:1 wo:f oos:7530908
-        [====>...............] sync'ed: 28.3% (7352/10236)M
-        finish: 0:03:42 speed: 33,904 (33,956) K/sec
+vagrant@server3:/vagrant$ sudo pcs qdevice setup model net --enable --start
+Quorum device 'net' initialized
+quorum device enabled
+Starting quorum device...
+quorum device started
 ```
 
-OutPut from Second node as well
+This command configures and starts the quorum device model net and configures the device to start on boot.
+
+After configuring the quorum device, you can check its status.
+This should show that the corosync-qnetd daemon is running and, at this point, there are no clients connected to it. The `--full` command option provides detailed output.
 
 ```console
-version: 8.4.10 (api:1/proto:86-101)
-srcversion: 473968AD625BA317874A57E
- 0: cs:SyncTarget ro:Secondary/Primary ds:Inconsistent/UpToDate C r-----
-    ns:0 nr:3917184 dw:3917184 dr:0 al:8 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:6568220
-        [======>.............] sync'ed: 37.4% (6412/10236)M
-        finish: 0:03:05 speed: 35,360 (34,060) want: 50,040 K/sec
-```
-
-<!--
-
-After Finish this. Create filesystem on DRBD device. Like this:
-
-```console
-# create mount point for DRBD device on primary node
-[root@server1 /]# mount -t ext4 /dev/drbd0 /mnt/drbd
-```
-
-Verify DRBD works by dropping any file in /mnt/drbd, after that make Secondary node as Primary node. Run below command on `server1`
-
-```console
-[root@server1 /]# umount /mnt/drbd
-[root@server1 /]# drbdadm secondary mydrbd
-```
-
-After this jump on Secondary machine, i.e `server2`. Create mount point for DRBD device on secondary node. The mount point can be the same or different from `server1`. In my case use the same.
-
-```console
-$> vagrant ssh server2
-vagrant@server1:/vagrant$ docker-compose build; docker-compose up -d
-vagrant@server1:/vagrant$ docker exec -it pcs bash
-[root@server2 /]# drbdadm -- --overwrite-data-of-peer primary mydrbd
-[root@server2 /]# mount -t ext4 /dev/drbd0 /mnt/drbd
-```
-
-Check if the file(s) have been sync'ed to `server2`. -->
+vagrant@server3:/vagrant$ sudo pcs qdevice status net --full
+QNetd address:                  *:5403
+TLS:                            Supported (client certificate required)
+Connected clients:              0
+Connected clusters:             0
+Maximum send/receive size:      32768/32768 bytes
+``` -->
 
 Create pcs resources.
 
 ```console
 # for CentOS8
-[root@server1 /]# pcs host -u hacluster -p [hapass] auth 10.1.0.10 10.1.0.20
-[root@server1 /]# pcs cluster setup mycluster 10.1.0.10 10.1.0.20
-
+vagrant@server1:/vagrant$ sudo pcs host -u hacluster -p [hapass] auth 10.1.0.10 10.1.0.20 10.1.0.30
+vagrant@server1:/vagrant$ sudo pcs cluster setup mycluster 10.1.0.10 10.1.0.20
 # pcs在執行以上命令時會生成/etc/corosync/corosync.conf及修改/var/lib/pacemaker/cib/cib.xml檔案，
 # corosync.conf為corosync的配置檔案，cib.xml為pacemaker的配置檔案。
 # 這兩個配置檔案是叢集的核心配置，重灌系統時建議做好這兩個配置檔案的備份。
-[root@server1 /]# pcs cluster start --all
-[root@server1 /]# pcs cluster enable --all
-# 在兩個節點的情況下設定以下值
-[root@server1 /]# pcs property set no-quorum-policy=ignore
-# 叢集故障時候服務遷移
-# [root@server1 /]# pcs resource defaults update migration-threshold=1
+vagrant@server1:/vagrant$ sudo pcs cluster start --all
+vagrant@server1:/vagrant$ sudo pcs cluster enable --all
 ```
 
 Pacemaker has the concept of resource stickiness, which controls how strongly a service prefers to stay running where it is to prevent resources from moving after recovery:
 
 ```console
-[root@server1 /]# pcs resource defaults update resource-stickiness=100
+vagrant@server1:/vagrant$ sudo pcs resource defaults update resource-stickiness=100
 ```
 
 Create virtual IP:
 
 ```console
-[root@server1 /]# pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.30 cidr_netmask=24 op monitor interval=30s --group mygroup
+vagrant@server1:/vagrant$ sudo pcs resource create virtual-ip ocf:heartbeat:IPaddr2 ip=10.1.0.40 cidr_netmask=24 op monitor interval=30s --group mygroup
+```
+
+Create file system:
+
+```console
+vagrant@server1:/vagrant$ sudo pcs resource create drbdfs ocf:heartbeat:Filesystem device=/dev/drbd0 directory=/mnt/drbd fstype=ext4 --group mygroup
 ```
 
 Create DRBD resources, provide RA of DRBD at present by OCF Classified as linbit, its path is `/usr/lib/ocf/resource.d/linbit/drbd`.
 You need to run on two nodes at the same time, but there can only be one node (primary/secondary model) Master, and the other node is Slave; therefore, it's a comparison special cluster resources, its resource type is multi state (Multi-state) clone type, that is, the host node has Master and Slave points, and it requires two nodes when the service starts all in slave state.
 
 ```console
-[root@server1 /]# pcs resource create mydrbd ocf:linbit:drbd drbd_resource=mydrbd --group mygroup
-[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op monitor role=Master interval=50s timeout=30s
-[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op monitor role=Slave interval=60s timeout=30s
-[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op start timeout=240s
-[root@server1 /]# pcs resource update mydrbd ocf:linbit:drbd op stop timeout=100s
-[root@server1 /]# pcs resource promotable mydrbd meta master-max=1 master-node-max=1 clone-max=2 clone-node-max=1 notify=true
-```
-
-But as a file system, you need to mount , hold drbd Mount to /data Catalog
-
-```console
-[root@server1 /]# pcs resource create drbdfs ocf:heartbeat:Filesystem device=/dev/drbd0 directory=/mnt/drbd fstype=ext4 --group mygroup
+vagrant@server1:/vagrant$ sudo pcs resource create mydrbd ocf:linbit:drbd drbd_resource=mydrbd promotable promoted-max=1 promoted-node-max=1 clone-max=2 clone-node-max=1 notify=true
 ```
 
 File system mount `drbdfs` it has to be with Master mydrbd on the same node, must be started first mydrbd then you can mount drbdfs file system, so you have to define resource constraints.
 
 ```console
-[root@server1 /]# pcs constraint colocation add drbdfs with master mydrbd-clone
-[root@server1 /]# pcs constraint order promote mydrbd-clone then drbdfs
+vagrant@server1:/vagrant$ sudo pcs constraint colocation add drbdfs with master mydrbd-clone
+vagrant@server1:/vagrant$ sudo pcs constraint order promote mydrbd-clone then drbdfs
 ```
 
-<!-- Define docker-compose resource:
+<!-- Add the quorum device to the cluster:
+
+The following command adds the quorum device that you have previously created to the cluster.
+You cannot use more than one quorum device in a cluster at the same time. However, one quorum device can be used by several clusters at the same time.
+This example command configures the quorum device to use the ffsplit algorithm.
 
 ```console
-[root@server1 /]# pcs resource create myapp ocf:heartbeat:docker-compose dirpath=/home/app op monitor interval=60s --group mygroup meta resource-stickiness=10O
+vagrant@server1:/vagrant$ sudo pcs quorum device add model net host=10.1.0.30 algorithm=ffsplit
+Setting up qdevice certificates on nodes...
+10.1.0.10: Succeeded
+10.1.0.20: Succeeded
+Enabling corosync-qdevice...
+10.1.0.10: corosync-qdevice enabled
+10.1.0.20: corosync-qdevice enabled
+Sending updated corosync.conf to nodes...
+10.1.0.10: Succeeded
+10.1.0.20: Succeeded
+10.1.0.10: Corosync configuration reloaded
+Starting corosync-qdevice...
+10.1.0.10: corosync-qdevice started
+10.1.0.20: corosync-qdevice started
+```
+
+Check the configuration status of the quorum device.
+
+```console
+vagrant@server1:/vagrant$ sudo pcs quorum config
+Options:
+Device:
+  votes: 1
+  Model: net
+    algorithm: ffsplit
+    host: 10.1.0.30
 ``` -->
 
 Disable stonith (this will start the cluster):
 
 ```console
-[root@server1 /]# pcs property set stonith-enabled=false
+vagrant@server1:/vagrant$ sudo pcs property set stonith-enabled=false
 ```
 
 Check pcs and cluster status:
 
 ```console
-[root@server1 /]# pcs status
-[root@server1 /]# pcs cluster status
+vagrant@server1:/vagrant$ sudo pcs status
+vagrant@server1:/vagrant$ sudo pcs cluster status
 ```
 
 You can view and modify your cluster in the web ui even when you created it in cli, but you need to add it there first (Add existing).
 
-Enable corosync and pacemaker services to start at boot:
-
-```console
-# in server1 container
-[root@server1 /]# systemctl enable corosync.service
-[root@server1 /]# systemctl enable pacemaker.service
-# in server2 container
-[root@server2 /]# systemctl enable corosync.service
-[root@server2 /]# systemctl enable pacemaker.service
-```
-
-## Test procedure
+## Test procedure to simulate split brain
 
 Check pcs status:
 
 ```console
-[root@server1 /]# pcs status
+vagrant@server1:/vagrant$ sudo pcs status
 Cluster name: mycluster
 Cluster Summary:
   * Stack: corosync
@@ -217,8 +196,11 @@ Node List:
 
 Full List of Resources:
   * Resource Group: mygroup:
-    * virtual-ip	(ocf::heartbeat:IPaddr2):	 Started 10.1.0.10 # 此條表示 vip 目前在 server1 上執行
-    * myapp	(ocf::heartbeat:docker-compose):	 Started 10.1.0.10 # 此條表示 app 目前在 server1 上執行
+    * virtual-ip        (ocf::heartbeat:IPaddr2):        Started 10.1.0.10
+    * drbdfs    (ocf::heartbeat:Filesystem):     Started 10.1.0.10
+  * Clone Set: mydrbd-clone [mydrbd] (promotable):
+    * Masters: [ 10.1.0.10 ]
+    * Slaves: [ 10.1.0.20 ]
 
 Daemon Status:
   corosync: active/enabled
@@ -226,39 +208,41 @@ Daemon Status:
   pcsd: active/enabled
 ```
 
-Transit virtual IP and app to server2 by stopping server1
+Transit virtual IP and app to server2 by disconnect server1
 
-```console
-$> vagrant halt server1
-```
+![Architecture](imgs/vbox-disconnect-cable.png)
 
 Check pcs status again on server2:
 
 ```console
-[root@server2 /]# pcs status
+vagrant@server2:/vagrant$ sudo pcs status
 Cluster name: mycluster
 Cluster Summary:
   * Stack: corosync
-  * Current DC: 10.1.0.20 (version 2.0.5-9.el8_4.1-ba59be7122) - partition with quorum
-  * Last updated: Wed Aug 25 08:17:22 2021
-  * Last change:  Wed Aug 25 08:12:58 2021 by root via cibadmin on 10.1.0.10
+  * Current DC: 10.1.0.10 (version 2.0.5-9.el8_4.1-ba59be7122) - partition with quorum
+  * Last updated: Wed Sep  8 11:49:06 2021
+  * Last change:  Wed Sep  8 11:40:25 2021 by hacluster via crmd on 10.1.0.20
   * 2 nodes configured
-  * 1 resource instance configured
+  * 4 resource instances configured
 
 Node List:
-  * Online: [ 10.1.0.20 ]
-  * OFFLINE: [ 10.1.0.10 ]
+  * Online: [ 10.1.0.10 10.1.0.20 ]
 
 Full List of Resources:
   * Resource Group: mygroup:
-    * virtual-ip	(ocf::heartbeat:IPaddr2):	 Started 10.1.0.20 # 此條表示 vip 在 server2 上執行了
+    * virtual-ip        (ocf::heartbeat:IPaddr2):        Started 10.1.0.20
+    * drbdfs    (ocf::heartbeat:Filesystem):     Started 10.1.0.20
+  * Clone Set: mydrbd-clone [mydrbd] (promotable):
+    * Masters: [ 10.1.0.20 ]
+    * Slaves: [ 10.1.0.10 ]
+
+Failed Resource Actions:
+  * virtual-ip_start_0 on 10.1.0.10 'error' (1): call=24, status='complete', exitreason='[findif] failed', last-rc-change='2021-09-08 11:41:26Z', queued=0ms, exec=21ms
 
 Daemon Status:
   corosync: active/enabled
   pacemaker: active/enabled
   pcsd: active/enabled
-
-     virtual-ip	(ocf::heartbeat:IPaddr2):	Started 10.1.0.20
 ```
 
 Bring server1 back online
@@ -288,15 +272,15 @@ To recover from split-brain with the following steps:
 On split-brain victim
 
 ```console
-drbdadm secondary mydrbd
-drbdadm connect --discard-my-data mydrbd
+sudo drbdadm secondary mydrbd
+sudo drbdadm connect --discard-my-data mydrbd
 ```
 
 On split-brain survivor:
 
 ```console
-drbdadm primary mydrbd
-drbdadm connect mydrbd
+sudo drbdadm primary mydrbd
+sudo drbdadm connect mydrbd
 ```
 
 ## References
