@@ -210,7 +210,7 @@ Daemon Status:
 
 Transit virtual IP and app to server2 by disconnect server1
 
-![Architecture](imgs/vbox-disconnect-cable.png)
+![Architecture](imgs/vbox-disconnect-cable.PNG)
 
 Check pcs status again on server2:
 
