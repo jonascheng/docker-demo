@@ -15,7 +15,7 @@ Deploy a two-node cluster with Pacemaker and Corosync managed by pcs. In additio
 * Manage virtual IP 10.1.0.40 by `pcs`.
 * Manage DRBD by `pcs`.
 
-![Architecture](imgs/pacemaker-cluster.png)
+![Architecture](imgs/pacemaker-drbd-cluster.png)
 
 ## Deployment procedure
 
