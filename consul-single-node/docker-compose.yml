@@ -11,6 +11,10 @@ services:
     volumes:
     - "./consul:/config"
     ports:
+    # DNS: The DNS server (TCP and UDP)
+    - 8600:8600/tcp
+    - 8600:8600/udp
+    # HTTP: The HTTP API (TCP Only)
     - 8500:8500
     networks:
       vpcbr:
