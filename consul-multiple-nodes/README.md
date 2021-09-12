@@ -4,21 +4,28 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 ## Prerequisites
 
-- Docker
-- Docker Compose
+- Vagrant
+- VirtualBox
 - Linux or OSX
 
 ## Deployment procedure
 
 1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
 2. Navigate to this directory.
-3. `./up.sh`
+3. `vagrant up` to provision two servers, one is `server1` and another is `server2`
+4. Execute the following commands in both servers
+
+```console
+$> vagrant ssh server1
+vagrant@server1:~$ cd /vagrant
+vagrant@server1:/vagrant$ ./up.sh
+```
 
 ## Testing procedure
 
-1. Navigate to [http://localhost:8500/ui/dc1/services](http://localhost:8500/ui/dc1/services)
+1. Navigate to [http://localhost:8010/ui/dc1/services](http://localhost:8010/ui/dc1/services)
 2. Notice the services being monitored by Consul.
-3. Navigate to [http://localhost:9090/ui/](http://localhost:9090/ui/) and refresh the page to generate traffic.
+3. Navigate to [http://localhost:9010/ui/](http://localhost:9010/ui/) and refresh the page to generate traffic.
 
 ## Additional information
 

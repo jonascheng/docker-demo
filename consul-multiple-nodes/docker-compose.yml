@@ -32,7 +32,7 @@ services:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "http://localhost:9091"
+      UPSTREAM_URIS: "http://web:9090"
       MESSAGE: "Hello World"
       NAME: "Ingress"
       SERVER_TYPE: "http"
@@ -71,7 +71,7 @@ services:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "grpc://localhost:9091"
+      UPSTREAM_URIS: "grpc://api:9090"
       MESSAGE: "Web response"
       NAME: "Web"
       SERVER_TYPE: "http"
@@ -83,28 +83,10 @@ services:
     networks:
       vpcbr:
         ipv4_address: ${WEB_IP_ADDR}
-  web_proxy:
-    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: web_proxy
-    depends_on:
-      - "web"
-    environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
-      SERVICE_CONFIG: /config/web_v1.hcl
-      CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "web-v1"
-    volumes:
-    - "./fake-service/service_config:/config"
-    - "./fake-service/central_config:/central_config"
-    command: >
-      sh -c "sleep 3 &&
-            consul connect envoy"
-    network_mode: "service:web"
 
-  api1:
+  api:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: api1
+    container_name: api
     depends_on:
       - "consul-server"
     environment:
@@ -121,64 +103,7 @@ services:
       ERROR_TYPE: "http_error"
     networks:
       vpcbr:
-        ipv4_address: ${API1_IP_ADDR}
-  api1_proxy:
-    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: api1_proxy
-    depends_on:
-      - "api1"
-    environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
-      SERVICE_CONFIG: /config/api1_v1.hcl
-      CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "api-uuid1"
-    volumes:
-    - "./fake-service/service_config:/config"
-    - "./fake-service/central_config:/central_config"
-    command: >
-      sh -c "sleep 3 &&
-            consul connect envoy"
-    network_mode: "service:api1"
-
-  api2:
-    image: nicholasjackson/fake-service:v0.21.0
-    container_name: api2
-    depends_on:
-      - "consul-server"
-    environment:
-      LISTEN_ADDR: 0.0.0.0:9090
-      MESSAGE: "API response"
-      NAME: "API"
-      SERVER_TYPE: "grpc"
-      TIMING_50_PERCENTILE: 1ms
-      TIMING_90_PERCENTILE: 2ms
-      TIMING_99_PERCENTILE: 3ms
-      TIMING_VARIANCE: 10
-      ERROR_RATE: 0.2
-      ERROR_CODE: 14
-      ERROR_TYPE: "http_error"
-    networks:
-      vpcbr:
-        ipv4_address: ${API2_IP_ADDR}
-  api2_proxy:
-    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: api2_proxy
-    depends_on:
-      - "api2"
-    environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
-      SERVICE_CONFIG: /config/api2_v1.hcl
-      CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "api-uuid2"
-    volumes:
-    - "./fake-service/service_config:/config"
-    - "./fake-service/central_config:/central_config"
-    command: >
-      sh -c "sleep 3 &&
-            consul connect envoy"
-    network_mode: "service:api2"
+        ipv4_address: ${API_IP_ADDR}
 
 networks:
   vpcbr:
