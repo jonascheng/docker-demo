@@ -18,7 +18,7 @@ services:
     # LAN Serf: The Serf LAN port (TCP and UDP)
     - 8301:8301
     # Wan Serf: The Serf WAN port (TCP and UDP)
-    # - 8302:8302
+    - 8302:8302
     # server: Server RPC address (TCP Only)
     - 8300:8300
     networks:
