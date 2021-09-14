@@ -37,11 +37,11 @@ vagrant@server1:/vagrant$ ./up.sh
 
 ## Application reference
 
-This demo consists of three services Ingress (HTTP), Web (HTTP), and API (gRPC)  which are configured to communicate using Consul Service Mesh.
+This demo consists of three services Ingress (HTTP), Stateless (HTTP), and Stateful (gRPC)  which are configured to communicate using Consul Service Mesh.
 
 ```
 ingress (HTTP) --
-                  web (HTTP) --
+                  stateless (HTTP) --
                                 stateful (gRPC, 20% error rate)
 ```
 

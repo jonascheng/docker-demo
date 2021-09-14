@@ -1,6 +1,6 @@
 service {
-  name = "web"
-  id = "web-v1"
+  name = "stateless"
+  id = "stateless-v1"
   address = "10.5.0.4"
   port = 9090
 
@@ -10,7 +10,7 @@ service {
 
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "web:20000"
+        tcp = "stateless:20000"
         interval ="10s"
       }
 

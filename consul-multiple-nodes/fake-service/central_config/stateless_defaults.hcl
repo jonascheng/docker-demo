@@ -1,4 +1,4 @@
 Kind = "service-defaults"
-Name = "web"
+Name = "stateless"
 
 Protocol = "http"

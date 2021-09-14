@@ -68,17 +68,17 @@ services:
             consul connect envoy"
     network_mode: "service:ingress"
 
-  web:
+  stateless:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: web
+    container_name: stateless
     restart: on-failure
     depends_on:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
       UPSTREAM_URIS: "grpc://localhost:9091"
-      MESSAGE: "Web response"
-      NAME: "Web"
+      MESSAGE: "Stateless response"
+      NAME: "Stateless"
       SERVER_TYPE: "http"
       HTTP_CLIENT_APPEND_REQUEST: "true"
       TIMING_50_PERCENTILE: 20ms
@@ -88,25 +88,25 @@ services:
     networks:
       vpcbr:
         ipv4_address: ${WEB_IP_ADDR}
-  web_proxy:
+  stateless_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: web_proxy
+    container_name: stateless_proxy
     restart: on-failure
     depends_on:
-      - "web"
+      - "stateless"
     environment:
       CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
       CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
-      SERVICE_CONFIG: /config/web_v1.hcl
-      CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "web-v1"
+      SERVICE_CONFIG: /config/stateless_v1.hcl
+      CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
+      CONNECT_SIDECAR_FOR: "stateless-v1"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
       sh -c "sleep 3 &&
             consul connect envoy"
-    network_mode: "service:web"
+    network_mode: "service:stateless"
 
   stateful:
     image: nicholasjackson/fake-service:v0.21.0
