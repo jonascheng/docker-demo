@@ -115,7 +115,7 @@ services:
     depends_on:
       - "consul-server"
     environment:
-      LISTEN_ADDR: 0.0.0.0:9090
+      LISTEN_ADDR: 0.0.0.0:6379
       MESSAGE: "Stateful response"
       NAME: "Stateful"
       SERVER_TYPE: "grpc"
@@ -126,6 +126,8 @@ services:
       ERROR_RATE: 0.2
       ERROR_CODE: 14
       ERROR_TYPE: "http_error"
+    ports:
+    - 6379:6379
     networks:
       vpcbr:
         ipv4_address: ${STATEFUL_IP_ADDR}

@@ -2,7 +2,7 @@ service {
   name = "stateful"
   id = "stateful-v1"
   address = "10.5.0.5"
-  port = 9090
+  port = 6379
 
   connect {
     sidecar_service {

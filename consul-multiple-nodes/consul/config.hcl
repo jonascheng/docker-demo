@@ -20,9 +20,9 @@ datacenter = "dc1"
 server = true
 
 # 預計要啟動幾個server,若為三台Consul server做HA, 則設定為3
-bootstrap_expect = 2
-retry_join  = ["10.1.0.10", "10.1.0.20"]
-retry_interval = "30s"
+bootstrap_expect = 1
+# retry_join  = ["10.1.0.10", "10.1.0.20"]
+# retry_interval = "30s"
 
 ui = true
 
