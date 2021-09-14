@@ -108,16 +108,16 @@ services:
             consul connect envoy"
     network_mode: "service:web"
 
-  api:
+  stateful:
     image: nicholasjackson/fake-service:v0.21.0
-    container_name: api
+    container_name: stateful
     restart: on-failure
     depends_on:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      MESSAGE: "API response"
-      NAME: "API"
+      MESSAGE: "Stateful response"
+      NAME: "Stateful"
       SERVER_TYPE: "grpc"
       TIMING_50_PERCENTILE: 1ms
       TIMING_90_PERCENTILE: 2ms
@@ -128,26 +128,26 @@ services:
       ERROR_TYPE: "http_error"
     networks:
       vpcbr:
-        ipv4_address: ${API_IP_ADDR}
-  api_proxy:
+        ipv4_address: ${STATEFUL_IP_ADDR}
+  stateful_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: api_proxy
+    container_name: stateful_proxy
     restart: on-failure
     depends_on:
-      - "api"
+      - "stateful"
     environment:
       CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
       CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
-      SERVICE_CONFIG: /config/api_v1.hcl
-      CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "api-v1"
+      SERVICE_CONFIG: /config/stateful_v1.hcl
+      CENTRAL_CONFIG: "/central_config/stateful_defaults.hcl"
+      CONNECT_SIDECAR_FOR: "stateful-v1"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
       sh -c "sleep 3 &&
             consul connect envoy"
-    network_mode: "service:api"
+    network_mode: "service:stateful"
 
 networks:
   vpcbr:

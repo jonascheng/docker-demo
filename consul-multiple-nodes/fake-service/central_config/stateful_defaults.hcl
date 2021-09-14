@@ -1,4 +1,4 @@
 Kind = "service-defaults"
-Name = "api"
+Name = "stateful"
 
 Protocol = "grpc"

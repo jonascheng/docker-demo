@@ -1,6 +1,6 @@
 service {
-  name = "api"
-  id = "api-v1"
+  name = "stateful"
+  id = "stateful-v1"
   address = "10.5.0.5"
   port = 9090
 
@@ -10,7 +10,7 @@ service {
 
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "api:20000"
+        tcp = "stateful:20000"
         interval ="10s"
       }
 

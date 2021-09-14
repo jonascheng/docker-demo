@@ -42,7 +42,7 @@ This demo consists of three services Ingress (HTTP), Web (HTTP), and API (gRPC) 
 ```
 ingress (HTTP) --
                   web (HTTP) --
-                                api (gRPC, 20% error rate)
+                                stateful (gRPC, 20% error rate)
 ```
 
 Tracing has been configured for both the application instances and Envoy proxy using the Zipkin protocol, the spans

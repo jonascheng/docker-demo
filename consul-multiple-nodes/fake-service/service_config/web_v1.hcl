@@ -16,7 +16,7 @@ service {
 
       proxy {
         upstreams {
-          destination_name = "api"
+          destination_name = "stateful"
           local_bind_address = "127.0.0.1"
           local_bind_port = 9091
         }
