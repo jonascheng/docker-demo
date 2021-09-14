@@ -21,10 +21,9 @@ server = true
 
 # 預計要啟動幾個server,若為三台Consul server做HA, 則設定為3
 bootstrap_expect = 2
-retry_join  = ["10.1.0.10","10.1.0.20"]
+retry_join  = ["10.1.0.10", "10.1.0.20"]
 retry_interval = "30s"
 
-# 開啟web UI的功能
 ui = true
 
 bind_addr = "0.0.0.0"

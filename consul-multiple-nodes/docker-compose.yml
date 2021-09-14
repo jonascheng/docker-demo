@@ -6,6 +6,7 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
+    restart: on-failure
     command: ["consul", "agent", "-config-file=/config/config.hcl", "-advertise", "${HOSTIP}"]
     volumes:
     - "./consul:/config"
@@ -16,11 +17,12 @@ services:
     # HTTP: The HTTP API (TCP Only)
     - 8500:8500
     # LAN Serf: The Serf LAN port (TCP and UDP)
-    - 8301:8301
+    - 8301:8301/tcp
+    - 8301:8301/udp
     # Wan Serf: The Serf WAN port (TCP and UDP)
     - 8302:8302
     # server: Server RPC address (TCP Only)
-    - 8300:8300
+    - 8300:8300/tcp
     networks:
       vpcbr:
         ipv4_address: ${CONSUL_SERVER_IP_ADDR}
@@ -28,11 +30,12 @@ services:
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
     container_name: ingress
+    restart: on-failure
     depends_on:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "http://web:9090"
+      UPSTREAM_URIS: "http://localhost:9091"
       MESSAGE: "Hello World"
       NAME: "Ingress"
       SERVER_TYPE: "http"
@@ -48,6 +51,7 @@ services:
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
     container_name: ingress_proxy
+    restart: on-failure
     depends_on:
       - "ingress"
     environment:
@@ -67,11 +71,12 @@ services:
   web:
     image: nicholasjackson/fake-service:v0.21.0
     container_name: web
+    restart: on-failure
     depends_on:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "grpc://api:9090"
+      UPSTREAM_URIS: "grpc://localhost:9091"
       MESSAGE: "Web response"
       NAME: "Web"
       SERVER_TYPE: "http"
@@ -83,10 +88,30 @@ services:
     networks:
       vpcbr:
         ipv4_address: ${WEB_IP_ADDR}
+  web_proxy:
+    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: web_proxy
+    restart: on-failure
+    depends_on:
+      - "web"
+    environment:
+      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
+      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
+      SERVICE_CONFIG: /config/web_v1.hcl
+      CENTRAL_CONFIG: "/central_config/web_defaults.hcl"
+      CONNECT_SIDECAR_FOR: "web-v1"
+    volumes:
+    - "./fake-service/service_config:/config"
+    - "./fake-service/central_config:/central_config"
+    command: >
+      sh -c "sleep 3 &&
+            consul connect envoy"
+    network_mode: "service:web"
 
   api:
     image: nicholasjackson/fake-service:v0.21.0
     container_name: api
+    restart: on-failure
     depends_on:
       - "consul-server"
     environment:
@@ -104,6 +129,25 @@ services:
     networks:
       vpcbr:
         ipv4_address: ${API_IP_ADDR}
+  api_proxy:
+    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: api_proxy
+    restart: on-failure
+    depends_on:
+      - "api"
+    environment:
+      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
+      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
+      SERVICE_CONFIG: /config/api_v1.hcl
+      CENTRAL_CONFIG: "/central_config/api_defaults.hcl"
+      CONNECT_SIDECAR_FOR: "api-v1"
+    volumes:
+    - "./fake-service/service_config:/config"
+    - "./fake-service/central_config:/central_config"
+    command: >
+      sh -c "sleep 3 &&
+            consul connect envoy"
+    network_mode: "service:api"
 
 networks:
   vpcbr:
