@@ -16,6 +16,8 @@ services:
     - 8600:8600/udp
     # HTTP: The HTTP API (TCP Only)
     - 8500:8500
+    # gRPC: The gRPC API
+    - 8502:8502
     # LAN Serf: The Serf LAN port (TCP and UDP)
     - 8301:8301/tcp
     - 8301:8301/udp
@@ -55,8 +57,8 @@ services:
     depends_on:
       - "ingress"
     environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
+      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
+      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
       SERVICE_CONFIG: /config/ingress_v1.hcl
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
       CONNECT_SIDECAR_FOR: "ingress-v1"
@@ -95,8 +97,8 @@ services:
     depends_on:
       - "stateless"
     environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
+      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
+      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
       SERVICE_CONFIG: /config/stateless_v1.hcl
       CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
       CONNECT_SIDECAR_FOR: "stateless-v1"
@@ -138,8 +140,8 @@ services:
     depends_on:
       - "stateful"
     environment:
-      CONSUL_HTTP_ADDR: ${CONSUL_SERVER_IP_ADDR}:8500
-      CONSUL_GRPC_ADDR: ${CONSUL_SERVER_IP_ADDR}:8502
+      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
+      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
       SERVICE_CONFIG: /config/stateful_v1.hcl
       CENTRAL_CONFIG: "/central_config/stateful_defaults.hcl"
       CONNECT_SIDECAR_FOR: "stateful-v1"
