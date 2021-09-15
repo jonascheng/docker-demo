@@ -123,9 +123,9 @@ services:
       TIMING_90_PERCENTILE: 2ms
       TIMING_99_PERCENTILE: 3ms
       TIMING_VARIANCE: 10
-      ERROR_RATE: 0.2
-      ERROR_CODE: 14
-      ERROR_TYPE: "http_error"
+      # ERROR_RATE: 0.2
+      # ERROR_CODE: 14
+      # ERROR_TYPE: "http_error"
     ports:
     - 6379:6379
     networks:
