@@ -1,8 +1,8 @@
 service {
   name = "ingress"
   id = "ingress-v1"
-#  address = "10.1.0.10"
-#  port = 9090
+  address = "10.5.0.3"
+  port = 9090
 
   connect {
     sidecar_service {

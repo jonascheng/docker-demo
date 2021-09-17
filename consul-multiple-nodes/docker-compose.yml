@@ -38,8 +38,8 @@ services:
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
       UPSTREAM_URIS: "http://localhost:9091"
-      MESSAGE: "Hello World"
-      NAME: "Ingress"
+      MESSAGE: "Hello World from ${HOSTIP}"
+      NAME: "Ingress from ${HOSTIP}"
       SERVER_TYPE: "http"
       TIMING_50_PERCENTILE: 30ms
       TIMING_90_PERCENTILE: 60ms
@@ -80,8 +80,8 @@ services:
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
       UPSTREAM_URIS: "grpc://localhost:9091"
-      MESSAGE: "Stateless response"
-      NAME: "Stateless"
+      MESSAGE: "Stateless response from ${HOSTIP}"
+      NAME: "Stateless from ${HOSTIP}"
       SERVER_TYPE: "http"
       HTTP_CLIENT_APPEND_REQUEST: "true"
       TIMING_50_PERCENTILE: 20ms
