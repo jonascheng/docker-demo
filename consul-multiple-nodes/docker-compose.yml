@@ -45,6 +45,7 @@ services:
       TIMING_90_PERCENTILE: 60ms
       TIMING_99_PERCENTILE: 90ms
       TIMING_VARIANCE: 10
+      TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
     - 9090:9090
     networks:
@@ -87,6 +88,7 @@ services:
       TIMING_90_PERCENTILE: 30ms
       TIMING_99_PERCENTILE: 40ms
       TIMING_VARIANCE: 10
+      TRACING_ZIPKIN: "http://jaeger:9411"
     networks:
       vpcbr:
         ipv4_address: ${WEB_IP_ADDR}
@@ -128,6 +130,7 @@ services:
       # ERROR_RATE: 0.2
       # ERROR_CODE: 14
       # ERROR_TYPE: "http_error"
+      TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
     - 6379:6379
     networks:
@@ -152,6 +155,22 @@ services:
       sh -c "sleep 5 &&
             consul connect envoy -- -l debug"
     network_mode: "service:stateful"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.13
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+    ports:
+    - "5775:5775/udp"
+    - "6831:6831/udp"
+    - "6832:6832/udp"
+    - "5778:5778"
+    - "16686:16686"
+    - "14268:14268"
+    - "9411:9411"
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.6
 
 networks:
   vpcbr:

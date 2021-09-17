@@ -23,10 +23,10 @@ vagrant@server1:/vagrant$ ./up.sh
 
 ## Testing procedure
 
-1. Navigate to [http://localhost:8010/ui/dc1/services](http://localhost:8010/ui/dc1/services)
+1. Navigate to [http://10.1.0.10:8500/ui/dc1/services](http://10.1.0.10:8500/ui/dc1/services)
 2. Notice the services being monitored by Consul.
-3. Navigate to [http://localhost:9010/ui/](http://localhost:9010/ui/) and refresh the page to generate traffic.
-
+3. Navigate to [http://10.1.0.10:9090/ui](http://10.1.0.10:9090/ui) and refresh the page to generate traffic.
+4. Navigate to [http://10.1.0.10:16686/search](http://10.1.0.10:16686/search) and trace the traffic.
 ## Additional information
 
 - [https://learn.hashicorp.com/collections/consul/docker](https://learn.hashicorp.com/collections/consul/docker)
