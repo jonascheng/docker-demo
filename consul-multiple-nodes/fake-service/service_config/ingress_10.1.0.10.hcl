@@ -1,8 +1,8 @@
 service {
-  name = "stateless"
-  id = "stateless-v1"
-  address = "10.5.0.4"
-  port = 9090
+  name = "ingress"
+  id = "ingress-10.1.0.10"
+  address = "10.5.0.3"
+  port = 8080
 
   connect {
     sidecar_service {
@@ -10,13 +10,13 @@ service {
 
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "stateless:20000"
+        tcp = "10.5.0.3:20000"
         interval ="10s"
       }
 
       proxy {
         upstreams {
-          destination_name = "stateful"
+          destination_name = "stateless"
           local_bind_address = "127.0.0.1"
           local_bind_port = 9091
         }

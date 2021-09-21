@@ -47,7 +47,7 @@ services:
       TIMING_VARIANCE: 10
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
-    - 9090:9090
+    - 8080:9090
     networks:
       vpcbr:
         ipv4_address: ${INGRESS_IP_ADDR}
@@ -60,9 +60,9 @@ services:
     environment:
       CONSUL_HTTP_ADDR: ${HOSTIP}:8500
       CONSUL_GRPC_ADDR: ${HOSTIP}:8502
-      SERVICE_CONFIG: /config/ingress_v1.hcl
+      SERVICE_CONFIG: /config/ingress_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "ingress-v1"
+      CONNECT_SIDECAR_FOR: "ingress-${HOSTIP}"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
@@ -101,9 +101,9 @@ services:
     environment:
       CONSUL_HTTP_ADDR: ${HOSTIP}:8500
       CONSUL_GRPC_ADDR: ${HOSTIP}:8502
-      SERVICE_CONFIG: /config/stateless_v1.hcl
+      SERVICE_CONFIG: /config/stateless_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateless-v1"
+      CONNECT_SIDECAR_FOR: "stateless-${HOSTIP}"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
@@ -120,8 +120,8 @@ services:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:6379
-      MESSAGE: "Stateful response"
-      NAME: "Stateful"
+      MESSAGE: "Stateful response from ${HOSTIP}"
+      NAME: "Stateful from ${HOSTIP}"
       SERVER_TYPE: "grpc"
       TIMING_50_PERCENTILE: 1ms
       TIMING_90_PERCENTILE: 2ms
@@ -145,9 +145,9 @@ services:
     environment:
       CONSUL_HTTP_ADDR: ${HOSTIP}:8500
       CONSUL_GRPC_ADDR: ${HOSTIP}:8502
-      SERVICE_CONFIG: /config/stateful_v1.hcl
+      SERVICE_CONFIG: /config/stateful_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/stateful_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateful-v1"
+      CONNECT_SIDECAR_FOR: "stateful-${HOSTIP}"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"

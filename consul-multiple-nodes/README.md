@@ -25,7 +25,7 @@ vagrant@server1:/vagrant$ ./up.sh
 
 1. Navigate to [http://10.1.0.10:8500/ui/dc1/services](http://10.1.0.10:8500/ui/dc1/services)
 2. Notice the services being monitored by Consul.
-3. Navigate to [http://10.1.0.10:9090/ui](http://10.1.0.10:9090/ui) and refresh the page to generate traffic.
+3. Navigate to [http://10.1.0.10:8080/ui](http://10.1.0.10:8080/ui) and refresh the page to generate traffic.
 4. Navigate to [http://10.1.0.10:16686/search](http://10.1.0.10:16686/search) and trace the traffic.
 ## Additional information
 

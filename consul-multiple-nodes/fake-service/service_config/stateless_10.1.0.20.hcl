@@ -1,7 +1,8 @@
 service {
-  name = "ingress"
-  id = "ingress-v1"
-  address = "10.5.0.3"
+  name = "stateless"
+  # services must have unique IDs per node.
+  id = "stateless-10.1.0.20"
+  address = "10.5.0.4"
   port = 9090
 
   connect {
@@ -10,13 +11,13 @@ service {
 
       check {
         name = "Connect Envoy Sidecar"
-        tcp = "ingress:20000"
+        tcp = "stateless:20000"
         interval ="10s"
       }
 
       proxy {
         upstreams {
-          destination_name = "stateless"
+          destination_name = "stateful"
           local_bind_address = "127.0.0.1"
           local_bind_port = 9091
         }
