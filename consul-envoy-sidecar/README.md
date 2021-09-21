@@ -11,10 +11,18 @@ docker run -d --name=consul-server --net=host \
   hashicorp/consul:1.8.10 agent -server \
   -config-file /etc/consul/envoy_demo.hcl \
   -grpc-port 8502 \
-  -client 169.254.1.1 \
+  -client 0.0.0.0 \
   -bind 10.1.0.10 \
   -bootstrap-expect 1 -ui
 ```
+
+Let’s break down the above command:
+
+`--net=host` runs the docker container on the host machine. It is the recommended way by HashiCorp to run Consul container.
+`-server` runs Consul in server mode.
+`-grpc-port` tells Consul to start the gRPC server. This is needed because we want to use Envoy as the data plane.
+`-client` makes Consul bind the HTTP, DNS and gRPC server on this IP. The REST endpoint will be available on http://169.254.1.1:8500 and gRPC endpoint on 169.254.1.1:8502.
+`-bind` makes Consul use this IP for all internal cluster communication.
 
 # Running the Echo service
 
