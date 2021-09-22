@@ -1,6 +1,6 @@
 ## Overview
 
-Deploy a Consul datacenter, an application stack, and an observability stack (Grafana + Loki + Tempo + Prometheus + Node-Exporter). These resources will be used to provide complete service mesh observability capabilities.
+Deploy a Consul datacenter, and an application stack with mimic stateful service. These resources will be used to provide complete service mesh capabilities.
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ Deploy a Consul datacenter, an application stack, and an observability stack (Gr
 
 1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
 2. Navigate to this directory.
-3. `vagrant up` to provision two servers, one is `server1` and another is `server2`
-4. Execute the following commands in both servers
+3. `vagrant up` to provision three servers, which are `server1`, `server2` and `server3` respectively.
+4. Execute the following commands in three servers
 
 ```console
 $> vagrant ssh server1
@@ -27,6 +27,7 @@ vagrant@server1:/vagrant$ ./up.sh
 2. Notice the services being monitored by Consul.
 3. Navigate to [http://10.1.0.10:8080/ui](http://10.1.0.10:8080/ui) and refresh the page to generate traffic.
 4. Navigate to [http://10.1.0.10:16686/search](http://10.1.0.10:16686/search) and trace the traffic.
+
 ## Additional information
 
 - [https://learn.hashicorp.com/collections/consul/docker](https://learn.hashicorp.com/collections/consul/docker)
@@ -42,15 +43,10 @@ This demo consists of three services Ingress (HTTP), Stateless (HTTP), and State
 ```
 ingress (HTTP) --
                   stateless (HTTP) --
-                                stateful (gRPC, 20% error rate)
+                                      stateful (gRPC)
 ```
 
 Tracing has been configured for both the application instances and Envoy proxy using the Zipkin protocol, the spans
 will be collected by the bundled Jaeger instance.
 
 ![](images/fake-ui.png)
-
-## Gratitude
-
-- [Nic Jackson @ Hashicorp](https://github.com/hashicorp/consul-demo-tracing/tree/master/jaeger)
-- [Joe Elliot @ Grafana Labs](https://github.com/grafana/tempo/tree/main/example/docker-compose)
