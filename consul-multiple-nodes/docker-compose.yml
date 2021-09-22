@@ -7,27 +7,14 @@ services:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
     restart: on-failure
-    command: ["consul", "agent", "-config-file=/config/config.hcl", "-advertise", "${HOSTIP}"]
+    command: [
+      "consul", "agent",
+      "-config-file", "/config/config.hcl",
+      "-bind", "${HOSTIP}",
+      "-advertise", "${HOSTIP}"]
     volumes:
     - "./consul:/config"
-    ports:
-    # DNS: The DNS server (TCP and UDP)
-    - 8600:8600/tcp
-    - 8600:8600/udp
-    # HTTP: The HTTP API (TCP Only)
-    - 8500:8500
-    # gRPC: The gRPC API
-    - 8502:8502
-    # LAN Serf: The Serf LAN port (TCP and UDP)
-    - 8301:8301/tcp
-    - 8301:8301/udp
-    # Wan Serf: The Serf WAN port (TCP and UDP)
-    - 8302:8302
-    # server: Server RPC address (TCP Only)
-    - 8300:8300/tcp
-    networks:
-      vpcbr:
-        ipv4_address: ${CONSUL_SERVER_IP_ADDR}
+    network_mode: "host"
 
   ingress:
     image: nicholasjackson/fake-service:v0.21.0
@@ -35,9 +22,11 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
+    dns:
+      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "http://localhost:9091"
+      UPSTREAM_URIS: "http://169.254.1.1:9091"
       MESSAGE: "Hello World from ${HOSTIP}"
       NAME: "Ingress from ${HOSTIP}"
       SERVER_TYPE: "http"
@@ -47,29 +36,31 @@ services:
       TIMING_VARIANCE: 10
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
-    - 8080:9090
-    networks:
-      vpcbr:
-        ipv4_address: ${INGRESS_IP_ADDR}
+    - 0.0.0.0:8080:9090
+
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
     container_name: ingress_proxy
     restart: on-failure
     depends_on:
+      - "consul-server"
       - "ingress"
+    dns:
+      - 169.254.1.1
     environment:
-      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
-      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
       SERVICE_CONFIG: /config/ingress_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "ingress-${HOSTIP}"
+      # CONNECT_SIDECAR_FOR: "ingress-${HOSTIP}"
+      CONNECT_SIDECAR_FOR: "ingress"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
       sh -c "sleep 3 &&
-            consul connect envoy -- -l debug"
-    network_mode: "service:ingress"
+            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
+    network_mode: "host"
 
   stateless:
     image: nicholasjackson/fake-service:v0.21.0
@@ -77,9 +68,11 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
+    dns:
+      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "grpc://localhost:9091"
+      UPSTREAM_URIS: "grpc://169.254.1.1:9092"
       MESSAGE: "Stateless response from ${HOSTIP}"
       NAME: "Stateless from ${HOSTIP}"
       SERVER_TYPE: "http"
@@ -89,28 +82,30 @@ services:
       TIMING_99_PERCENTILE: 40ms
       TIMING_VARIANCE: 10
       TRACING_ZIPKIN: "http://jaeger:9411"
-    networks:
-      vpcbr:
-        ipv4_address: ${WEB_IP_ADDR}
+    ports:
+    - 169.254.1.1:8081:9090
+
   stateless_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
     container_name: stateless_proxy
     restart: on-failure
     depends_on:
+      - "consul-server"
       - "stateless"
     environment:
-      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
-      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
       SERVICE_CONFIG: /config/stateless_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateless-${HOSTIP}"
+      # CONNECT_SIDECAR_FOR: "stateless-${HOSTIP}"
+      CONNECT_SIDECAR_FOR: "stateless"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
       sh -c "sleep 5 &&
-            consul connect envoy -- -l debug"
-    network_mode: "service:stateless"
+            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
+    network_mode: "host"
 
   stateful:
     image: nicholasjackson/fake-service:v0.21.0
@@ -118,6 +113,8 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
+    dns:
+      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:6379
       MESSAGE: "Stateful response from ${HOSTIP}"
@@ -127,34 +124,31 @@ services:
       TIMING_90_PERCENTILE: 2ms
       TIMING_99_PERCENTILE: 3ms
       TIMING_VARIANCE: 10
-      # ERROR_RATE: 0.2
-      # ERROR_CODE: 14
-      # ERROR_TYPE: "http_error"
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
-    - 6379:6379
-    networks:
-      vpcbr:
-        ipv4_address: ${STATEFUL_IP_ADDR}
+    - 169.254.1.1:6379:6379
+
   stateful_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
     container_name: stateful_proxy
     restart: on-failure
     depends_on:
+      - "consul-server"
       - "stateful"
     environment:
-      CONSUL_HTTP_ADDR: ${HOSTIP}:8500
-      CONSUL_GRPC_ADDR: ${HOSTIP}:8502
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
       SERVICE_CONFIG: /config/stateful_${HOSTIP}.hcl
       CENTRAL_CONFIG: "/central_config/stateful_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateful-${HOSTIP}"
+      # CONNECT_SIDECAR_FOR: "stateful-${HOSTIP}"
+      CONNECT_SIDECAR_FOR: "stateful"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
       sh -c "sleep 5 &&
-            consul connect envoy -- -l debug"
-    network_mode: "service:stateful"
+            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
+    network_mode: "host"
 
   jaeger:
     image: jaegertracing/all-in-one:1.13
@@ -168,13 +162,3 @@ services:
     - "16686:16686"
     - "14268:14268"
     - "9411:9411"
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.6
-
-networks:
-  vpcbr:
-    driver: bridge
-    ipam:
-      config:
-      - subnet: ${SUBNET_CIDR}
