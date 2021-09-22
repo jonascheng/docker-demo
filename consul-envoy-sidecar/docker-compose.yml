@@ -16,7 +16,11 @@ services:
     container_name: consul-server
     restart: on-failure
     command: [
-      "agent", "-server", "-config-file=/etc/consul/envoy_demo.hcl", "-grpc-port=8502", "-client=0.0.0.0", "-bind=10.1.0.10", "-bootstrap-expect=1", "-ui"]
+      "agent", "-server",
+      "-config-file=/etc/consul/envoy_demo.hcl",
+      "-grpc-port=8502", "-client=0.0.0.0", "-bind=${HOSTIP}",
+      "-bootstrap-expect=2", "-retry-join=10.1.0.10", "-retry-join=10.1.0.20",
+      "-ui"]
     volumes:
     - "./envoy_demo.hcl:/etc/consul/envoy_demo.hcl"
     network_mode: "host"
