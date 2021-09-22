@@ -1,0 +1,83 @@
+---
+version: "3.7"
+
+services:
+
+  # docker run -d --name=consul-server --net=host \
+  #  -v `pwd`/envoy_demo.hcl:/etc/consul/envoy_demo.hcl \
+  #  hashicorp/consul:1.8.10 agent -server \
+  #  -config-file /etc/consul/envoy_demo.hcl \
+  #  -grpc-port 8502 \
+  #  -client 0.0.0.0 \
+  #  -bind 10.1.0.10 \
+  #  -bootstrap-expect 1 -ui
+  consul-server:
+    image: hashicorp/consul:1.8.10
+    container_name: consul-server
+    restart: on-failure
+    command: [
+      "agent", "-server", "-config-file=/etc/consul/envoy_demo.hcl", "-grpc-port=8502", "-client=0.0.0.0", "-bind=10.1.0.10", "-bootstrap-expect=1", "-ui"]
+    volumes:
+    - "./envoy_demo.hcl:/etc/consul/envoy_demo.hcl"
+    network_mode: "host"
+
+  # docker run --rm -d --dns 169.254.1.1 --name echo-service \
+  #  --net=bridge \
+  #  -p 169.254.1.1:9090:9090 \
+  #  abrarov/tcp-echo \
+  #  --port 9090
+  echo-service:
+    image: abrarov/tcp-echo
+    container_name: echo-service
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    dns:
+      - 169.254.1.1
+    command: ["--port", "9090"]
+    ports:
+    - 169.254.1.1:9090:9090
+
+  # docker run --rm -d --dns 169.254.1.1 --name echo-proxy \
+  #   --network host \
+  #   -e CONSUL_HTTP_ADDR=http://169.254.1.1:8500 \
+  #   -e CONSUL_GRPC_ADDR=169.254.1.1:8502 \
+  #   -e CONNECT_SIDECAR_FOR=echo \
+  #   nicholasjackson/consul-envoy:v1.6.1-v0.10.0 \
+  #   consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug
+  echo-proxy:
+    image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
+    container_name: echo-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    dns:
+      - 169.254.1.1
+    command: ["consul", "connect", "envoy", "-admin-bind", "127.0.0.1:0", "--", "-l", "debug"]
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
+      CONNECT_SIDECAR_FOR: echo
+    network_mode: "host"
+
+  # docker run --rm -d --dns 169.254.1.1 --name client-proxy \
+  #   --network host \
+  #   -e CONSUL_HTTP_ADDR=http://169.254.1.1:8500 \
+  #   -e CONSUL_GRPC_ADDR=169.254.1.1:8502 \
+  #   -e CONNECT_SIDECAR_FOR=client \
+  #   nicholasjackson/consul-envoy:v1.6.1-v0.10.0 \
+  #   consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug
+  client-proxy:
+    image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
+    container_name: client-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    dns:
+      - 169.254.1.1
+    command: ["consul", "connect", "envoy", "-admin-bind", "127.0.0.1:0", "--", "-l", "debug"]
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
+      CONNECT_SIDECAR_FOR: client
+    network_mode: "host"
