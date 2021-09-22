@@ -1,8 +1,18 @@
 service {
   name = "ingress"
-  # id = "ingress-10.1.0.20"
+  # services must have unique IDs per node.
+  # id = "ingress-10.1.0.10"
   # address = "10.5.0.3"
   port = 8080
+
+  check {
+    id = "ingress_check"
+    name = "Check Ingress health"
+    http = "http://169.254.1.1:8080/health"
+    method = "GET"
+    interval = "10s"
+    timeout = "1s"
+  }
 
   connect {
     sidecar_service {

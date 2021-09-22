@@ -50,9 +50,8 @@ services:
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: /config/ingress_${HOSTIP}.hcl
+      SERVICE_CONFIG: /config/ingress.hcl
       CENTRAL_CONFIG: "/central_config/ingress_defaults.hcl"
-      # CONNECT_SIDECAR_FOR: "ingress-${HOSTIP}"
       CONNECT_SIDECAR_FOR: "ingress"
     volumes:
     - "./fake-service/service_config:/config"
@@ -95,9 +94,8 @@ services:
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: /config/stateless_${HOSTIP}.hcl
+      SERVICE_CONFIG: /config/stateless.hcl
       CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
-      # CONNECT_SIDECAR_FOR: "stateless-${HOSTIP}"
       CONNECT_SIDECAR_FOR: "stateless"
     volumes:
     - "./fake-service/service_config:/config"
