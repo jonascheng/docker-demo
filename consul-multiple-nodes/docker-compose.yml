@@ -136,9 +136,8 @@ services:
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: /config/stateful_${HOSTIP}.hcl
+      SERVICE_CONFIG: /config/stateful.hcl
       CENTRAL_CONFIG: "/central_config/stateful_defaults.hcl"
-      # CONNECT_SIDECAR_FOR: "stateful-${HOSTIP}"
       CONNECT_SIDECAR_FOR: "stateful"
     volumes:
     - "./fake-service/service_config:/config"

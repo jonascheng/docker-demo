@@ -18,12 +18,6 @@ service {
     sidecar_service {
       port = 21000
 
-      # check {
-      #   name = "Connect Envoy Sidecar"
-      #   tcp = "10.5.0.3:20000"
-      #   interval ="10s"
-      # }
-
       proxy {
         local_service_address = "169.254.1.1"
         upstreams {
