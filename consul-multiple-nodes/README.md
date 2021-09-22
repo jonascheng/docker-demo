@@ -8,6 +8,12 @@ Deploy a Consul datacenter, and an application stack with mimic stateful service
 - VirtualBox
 - Linux or OSX
 
+## Architecture
+
+Network topology within a single node.
+
+![](images/consul-envoy-sidecar-architecture.png)
+
 ## Deployment procedure
 
 1. Clone [docker-demo](https://github.com/jonascheng/docker-demo) repository.
