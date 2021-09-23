@@ -23,8 +23,6 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
-    dns:
-      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
       UPSTREAM_URIS: "http://169.254.1.1:9091"
@@ -46,8 +44,6 @@ services:
     depends_on:
       - "consul-server"
       - "ingress"
-    dns:
-      - 169.254.1.1
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       CONSUL_GRPC_ADDR: 169.254.1.1:8502
@@ -68,8 +64,6 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
-    dns:
-      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
       UPSTREAM_URIS: "grpc://169.254.1.1:9092"
@@ -112,8 +106,6 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
-    dns:
-      - 169.254.1.1
     environment:
       LISTEN_ADDR: 0.0.0.0:6379
       MESSAGE: "Stateful response from ${HOSTIP}"
