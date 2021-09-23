@@ -11,7 +11,9 @@ services:
       "consul", "agent",
       "-config-file", "/config/config.hcl",
       "-bind", "${HOSTIP}",
-      "-advertise", "${HOSTIP}"]
+      "-advertise", "${HOSTIP}",
+      # with consul keygen
+      "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
     volumes:
     - "./consul:/config"
     - "/tmp/consul/data:/consul/data"
