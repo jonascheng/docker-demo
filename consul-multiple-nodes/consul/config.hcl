@@ -1,5 +1,5 @@
 # 用來儲存Consul放資料的地方
-data_dir = "/tmp/"
+data_dir = "/consul/data/"
 
 # 更新檢查
 disable_update_check = true
