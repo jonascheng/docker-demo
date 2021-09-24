@@ -41,7 +41,7 @@ services:
     - 0.0.0.0:21000:21000
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.5
+        ipv4_address: 169.254.2.11
 
   ingress_proxy:
     image: nicholasjackson/consul-envoy:v1.6.1-v0.10.0
@@ -86,7 +86,7 @@ services:
     - 0.0.0.0:21001:21001
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.2
+        ipv4_address: 169.254.2.12
 
   stateless_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
@@ -129,7 +129,7 @@ services:
     - 0.0.0.0:21002:21002
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.3
+        ipv4_address: 169.254.2.13
 
   stateful_proxy:
     image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
@@ -166,11 +166,11 @@ services:
     - "9411:9411"
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.4
+        ipv4_address: 169.254.2.4
 
 networks:
   vpcbr:
     driver: bridge
     ipam:
       config:
-      - subnet: 10.5.0.0/16
+      - subnet: 169.254.2.0/23

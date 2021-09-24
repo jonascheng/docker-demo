@@ -5,7 +5,7 @@ service {
   check {
     id = "ingress_check"
     name = "Check Ingress health"
-    http = "http://10.5.0.5:9090/health"
+    http = "http://169.254.2.11:9090/health"
     method = "GET"
     interval = "10s"
     timeout = "1s"

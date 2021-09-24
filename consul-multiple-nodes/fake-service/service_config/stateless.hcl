@@ -5,7 +5,7 @@ service {
   check {
     id = "stateless_check"
     name = "Check Stateless health"
-    http = "http://10.5.0.2:9090/health"
+    http = "http://169.254.2.12:9090/health"
     method = "GET"
     interval = "10s"
     timeout = "1s"

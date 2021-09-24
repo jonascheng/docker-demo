@@ -5,7 +5,7 @@ service {
   check {
     id = "stateful_check"
     name = "Check Stateful health"
-    tcp = "10.5.0.3:6379"
+    tcp = "169.254.2.13:6379"
     interval = "10s"
     timeout = "1s"
   }
