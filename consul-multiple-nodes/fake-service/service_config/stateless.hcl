@@ -20,7 +20,7 @@ service {
         upstreams {
           destination_name = "stateful"
           local_bind_address = "127.0.0.1"
-          local_bind_port = 9092
+          local_bind_port = 9091
         }
       }
     }

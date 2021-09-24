@@ -38,6 +38,7 @@ services:
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
     - 0.0.0.0:8080:9090
+    # only expose sidecar port
     - 0.0.0.0:21000:21000
     networks:
       vpcbr:
@@ -72,7 +73,7 @@ services:
       - "consul-server"
     environment:
       LISTEN_ADDR: 0.0.0.0:9090
-      UPSTREAM_URIS: "grpc://127.0.0.1:9092"
+      UPSTREAM_URIS: "grpc://127.0.0.1:9091"
       MESSAGE: "Stateless response from ${HOSTIP}"
       NAME: "Stateless from ${HOSTIP}"
       SERVER_TYPE: "http"
@@ -83,6 +84,7 @@ services:
       TIMING_VARIANCE: 10
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
+    # only expose sidecar port
     - 0.0.0.0:21001:21001
     networks:
       vpcbr:
@@ -126,6 +128,7 @@ services:
       TIMING_VARIANCE: 10
       TRACING_ZIPKIN: "http://jaeger:9411"
     ports:
+    # only expose sidecar port
     - 0.0.0.0:21002:21002
     networks:
       vpcbr:
