@@ -7,7 +7,7 @@ SCRIPT
 $dummyif = <<-SCRIPT
 sudo ip link add dummy0 type dummy
 sudo ip link set dev dummy0 up
-sudo ip addr add 169.254.1.1/32 dev dummy0
+sudo ip addr add 169.254.1.1/16 dev dummy0
 sudo ip link set dev dummy0 up
 
 echo "[NetDev]
@@ -18,7 +18,7 @@ echo "[Match]
 Name=dummy0
 
 [Network]
-Address=169.254.1.1/32" | sudo tee /etc/systemd/network/dummy0.network
+Address=169.254.1.1/16" | sudo tee /etc/systemd/network/dummy0.network
 
 sudo systemctl restart systemd-networkd
 
