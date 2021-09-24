@@ -26,7 +26,8 @@ retry_interval = "30s"
 
 ui = true
 
-# bind_addr = "0.0.0.0"
+# in production, we should set 169.254.1.1 instead
+# client_addr = "169.254.1.1"
 client_addr = "0.0.0.0"
 
 ports {
@@ -38,7 +39,6 @@ connect {
   enabled = true
 }
 
-# advertise_addr = "10.1.0.10"
 enable_central_service_config = true
 
 config_entries {
