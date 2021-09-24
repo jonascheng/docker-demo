@@ -4,32 +4,11 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
-$dummyif = <<-SCRIPT
-sudo ip link add dummy0 type dummy
-sudo ip link set dev dummy0 up
-sudo ip addr add 169.254.1.1/23 dev dummy0
-sudo ip link set dev dummy0 up
-
-echo "[NetDev]
-Name=dummy0
-Kind=dummy" | sudo tee /etc/systemd/network/dummy0.netdev
-
-echo "[Match]
-Name=dummy0
-
-[Network]
-Address=169.254.1.1/23" | sudo tee /etc/systemd/network/dummy0.network
-
-sudo systemctl restart systemd-networkd
-
-SCRIPT
-
 Vagrant.configure("2") do |config|
   config.vm.box = "boxomatic/ubuntu-18.04"
   config.vm.box_version = "20210723.0.1"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockercompose
-  config.vm.provision "shell", inline: $dummyif
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 1024
