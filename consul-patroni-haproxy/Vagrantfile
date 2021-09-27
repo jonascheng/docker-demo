@@ -1,0 +1,38 @@
+$dockercompose = <<-SCRIPT
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+SCRIPT
+
+$pgsqlvolume = <<-SCRIPT
+sudo mkdir -p /tmp/postgresql/data/node/
+sudo chmod -R 777 /tmp/postgresql/data/node/
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "boxomatic/ubuntu-18.04"
+  config.vm.box_version = "20210723.0.1"
+  config.vm.provision "docker"
+  config.vm.provision "shell", inline: $dockercompose
+  config.vm.provision "shell", inline: $pgsqlvolume
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 1024
+  end
+
+  config.vm.define "server1" do |node|
+    node.vm.hostname = "server1"
+    node.vm.network "private_network", ip: "10.1.0.10", hostname: true
+  end
+
+  # config.vm.define "server2" do |node|
+  #   node.vm.hostname = "server2"
+  #   node.vm.network "private_network", ip: "10.1.0.20", hostname: true
+  # end
+
+  # config.vm.define "server3" do |node|
+  #   node.vm.hostname = "server3"
+  #   node.vm.network "private_network", ip: "10.1.0.30", hostname: true
+  # end
+
+end

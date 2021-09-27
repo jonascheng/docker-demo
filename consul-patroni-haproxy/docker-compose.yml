@@ -1,0 +1,51 @@
+---
+version: "3.7"
+
+services:
+
+  consul-server:
+    image: hashicorp/consul:1.8.10
+    container_name: consul-server
+    restart: on-failure
+    command: [
+      "consul", "agent",
+      "-config-file", "/config/config.hcl",
+      "-bind", "${HOSTIP}",
+      "-advertise", "${HOSTIP}",
+      # with consul keygen
+      "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
+    volumes:
+    - "./consul:/config"
+    - "/tmp/consul/data:/consul/data"
+    network_mode: "host"
+
+  patroni:
+    build: ./patroni/
+    image: patroni-image
+    container_name: patroni
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    ports:
+      - "0.0.0.0:8008:8008"
+      - "0.0.0.0:5432:5432"
+    user: postgres
+    volumes:
+    - "./patroni:/config"
+    - "/tmp/postgresql/data:/var/lib/postgresql/data"
+    environment:
+      PATRONI_NAME: "patroni_${HOSTIP}"
+      PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data/node
+      PATRONI_CONSUL_HOST: 169.254.1.1:8500
+      PATRONI_CONSUL_URL: http://169.254.1.1:8500
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.3.1
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 169.254.0.0/16
+        gateway: 169.254.1.1
