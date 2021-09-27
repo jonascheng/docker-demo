@@ -20,7 +20,9 @@ services:
     network_mode: "host"
 
   patroni:
-    build: ./patroni/
+    build:
+      context: ./patroni/
+      dockerfile: Dockerfile.timescale
     image: patroni-image
     container_name: patroni
     restart: on-failure
@@ -32,10 +34,10 @@ services:
     user: postgres
     volumes:
     - "./patroni:/config"
-    - "/tmp/postgresql/data:/var/lib/postgresql/data"
+    - "/tmp/postgresql:/var/lib/postgresql"
     environment:
       PATRONI_NAME: "patroni_${HOSTIP}"
-      PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data/node
+      PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data
       PATRONI_CONSUL_HOST: 169.254.1.1:8500
       PATRONI_CONSUL_URL: http://169.254.1.1:8500
     networks:

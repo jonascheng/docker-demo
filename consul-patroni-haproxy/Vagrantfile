@@ -5,8 +5,9 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
 $pgsqlvolume = <<-SCRIPT
-sudo mkdir -p /tmp/postgresql/data/node/
-sudo chmod -R 777 /tmp/postgresql/data/node/
+sudo mkdir -p /tmp/postgresql/data/
+# change owner to postgres for timescaledb
+sudo chown -R 70:70 /tmp/postgresql/
 SCRIPT
 
 Vagrant.configure("2") do |config|
