@@ -2,7 +2,8 @@ scope: pgsql_cluster
 
 restapi:
     listen: 0.0.0.0:8008
-    connect_address: 10.1.0.10:8008
+    # aka PATRONI_RESTAPI_CONNECT_ADDRESS
+    # connect_address: 10.1.0.10:8008
 
 bootstrap:
     dcs:
@@ -30,12 +31,16 @@ bootstrap:
 
 postgresql:
     listen: 0.0.0.0:5432
-    connect_address: 10.1.0.10:5432
+    # aka PATRONI_POSTGRESQL_CONNECT_ADDRESS
+    # connect_address: 10.1.0.10:5432
     # config_dir: /config
-    data_dir: /var/lib/postgresql/data
+    # aka PATRONI_POSTGRESQL_DATA_DIR
+    # data_dir: /var/lib/postgresql/data
     pg_hba:
         - host replication replicator 127.0.0.1/32 md5
         - host replication replicator 10.1.0.10/16 md5
+        - host replication replicator 10.1.0.20/16 md5
+        - host replication replicator 10.1.0.30/16 md5
         - host all all 0.0.0.0/0 md5
     authentication:
         replication:

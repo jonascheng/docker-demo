@@ -16,7 +16,7 @@ services:
       "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
     volumes:
     - "./consul:/config"
-    - "/tmp/consul/data:/consul/data"
+    - "/home/vagrant/consul/data:/consul/data"
     network_mode: "host"
 
   patroni:
@@ -34,9 +34,11 @@ services:
     user: postgres
     volumes:
     - "./patroni:/config"
-    - "/tmp/postgresql:/var/lib/postgresql"
+    - "/home/vagrant/postgresql/data:/var/lib/postgresql/data"
     environment:
       PATRONI_NAME: "patroni_${HOSTIP}"
+      PATRONI_RESTAPI_CONNECT_ADDRESS: ${HOSTIP}:8008
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${HOSTIP}:5432
       PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data
       PATRONI_CONSUL_HOST: 169.254.1.1:8500
       PATRONI_CONSUL_URL: http://169.254.1.1:8500
