@@ -39,5 +39,5 @@ vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 replica.pgsql.service.consul
 2. Connect to one of pgsql node
 
 ```console
-docker run -it timescale/timescaledb:1.5.1-pg11 sh -c "psql -U postgres -h 10.1.0.10"
+vagrant@server1:/vagrant$ docker run -it timescale/timescaledb:1.5.1-pg11 sh -c "psql -U postgres -h 10.1.0.10"
 ```
