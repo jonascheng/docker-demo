@@ -46,8 +46,8 @@ postgresql:
     pg_hba:
         - host replication replicator 127.0.0.1/32 md5
         - host replication replicator 10.1.0.10/16 md5
-        # - host replication replicator 10.1.0.20/16 md5
-        # - host replication replicator 10.1.0.30/16 md5
+        - host replication replicator 10.1.0.20/16 md5
+        - host replication replicator 10.1.0.30/16 md5
         - host all all 0.0.0.0/0 md5
     authentication:
         replication:
