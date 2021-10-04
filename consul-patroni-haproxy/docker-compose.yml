@@ -19,6 +19,40 @@ services:
     - "/home/vagrant/consul/data:/consul/data"
     network_mode: "host"
 
+  stateless:
+    image: timescale/timescaledb:1.5.1-pg11
+    container_name: stateless
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    ports:
+    # only expose sidecar port
+    - 0.0.0.0:21001:21001
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.12
+
+  stateless_proxy:
+    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: stateless_proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "stateless"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
+      SERVICE_CONFIG: /config/stateless.hcl
+      CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
+      CONNECT_SIDECAR_FOR: "stateless"
+    volumes:
+    - "./fake-service/service_config:/config"
+    - "./fake-service/central_config:/central_config"
+    command: >
+      sh -c "sleep 5 &&
+            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
+    network_mode: "service:stateless"
+
   patroni:
     build:
       context: ./patroni/
