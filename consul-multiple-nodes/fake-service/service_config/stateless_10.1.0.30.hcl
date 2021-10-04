@@ -1,11 +1,12 @@
 service {
-  name = "ingress"
+  name = "stateless"
+  id = "stateless_10.1.0.30"
   port = 9090
 
   check {
-    id = "ingress_check"
-    name = "Check Ingress health"
-    http = "http://169.254.2.11:9090/health"
+    id = "stateless_check"
+    name = "Check Stateless health"
+    http = "http://169.254.2.12:9090/health"
     method = "GET"
     interval = "10s"
     timeout = "1s"
@@ -13,12 +14,12 @@ service {
 
   connect {
     sidecar_service {
-      port = 21000
+      port = 21001
 
       proxy {
         local_service_address = "127.0.0.1"
         upstreams {
-          destination_name = "stateless"
+          destination_name = "stateful"
           local_bind_address = "127.0.0.1"
           local_bind_port = 9091
         }

@@ -1,5 +1,6 @@
 service {
   name = "stateless"
+  id = "stateless_10.1.0.20"
   port = 9090
 
   check {

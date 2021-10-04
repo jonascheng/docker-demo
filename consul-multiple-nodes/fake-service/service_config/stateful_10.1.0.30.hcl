@@ -1,5 +1,6 @@
 service {
   name = "stateful"
+  id = "stateful_10.1.0.30"
   port = 6379
 
   check {
