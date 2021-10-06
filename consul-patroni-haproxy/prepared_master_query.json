@@ -1,0 +1,12 @@
+{
+  "Name": "master",
+  "Token": "",
+  "Service": {
+    "Service": "pgsql",
+    "OnlyPassing": false,
+    "Tags": ["master"]
+  },
+  "DNS": {
+    "TTL": "10s"
+  }
+}

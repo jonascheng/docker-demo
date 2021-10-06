@@ -2,6 +2,7 @@
 scope: pgsql
 
 consul:
+    dc: dc1
     # By default Patroni doesn’t register any services in Consul but if you turn it on there will be a service created with the
     # <scope> name and two tags: master and replica.
     # In order to access the master node we can use the hostname master.pgsql.service.consul, where pgsql_cluster is our scope name.

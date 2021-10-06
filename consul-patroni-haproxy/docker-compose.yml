@@ -42,14 +42,14 @@ services:
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: /config/stateless.hcl
+      SERVICE_CONFIG: "/config/stateless_${HOSTIP}.hcl"
       CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateless"
+      CONNECT_SIDECAR_FOR: "stateless_${HOSTIP}"
     volumes:
     - "./fake-service/service_config:/config"
     - "./fake-service/central_config:/central_config"
     command: >
-      sh -c "sleep 5 &&
+      sh -c "sleep 10 &&
             consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
     network_mode: "service:stateless"
 
@@ -65,6 +65,8 @@ services:
     ports:
       - "0.0.0.0:8008:8008"
       - "0.0.0.0:5432:5432"
+      # only expose sidecar port
+      - "0.0.0.0:21002:21002"
     user: postgres
     volumes:
     - "./patroni:/config"
@@ -79,6 +81,27 @@ services:
     networks:
       vpcbr:
         ipv4_address: 169.254.3.1
+  patroni_proxy:
+    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
+    container_name: patroni_proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "patroni"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      CONSUL_GRPC_ADDR: 169.254.1.1:8502
+      SERVICE_CONFIG: "/config/patroni_${HOSTIP}.hcl"
+      CENTRAL_CONFIG: "/central_config/patroni_defaults.hcl"
+      # CONNECT_SIDECAR_FOR: "pgsql"
+      CONNECT_SIDECAR_FOR: "pgsql/patroni_${HOSTIP}"
+    volumes:
+    - "./fake-service/service_config:/config"
+    - "./fake-service/central_config:/central_config"
+    command: >
+      sh -c "sleep 10 &&
+            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
+    network_mode: "service:patroni"
 
 networks:
   vpcbr:

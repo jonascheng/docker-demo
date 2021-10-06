@@ -23,6 +23,9 @@ TBD
 $> vagrant ssh server1
 vagrant@server1:~$ cd /vagrant
 vagrant@server1:/vagrant$ ./up.sh
+# create prepared query for master/replica pgsql
+vagrant@server1:/vagrant$ curl http://169.254.1.1:8500/v1/query --request POST --data @prepared_master_query.json
+vagrant@server1:/vagrant$ curl http://169.254.1.1:8500/v1/query --request POST --data @prepared_replica_query.json
 ```
 
 ## Testing procedure
@@ -34,6 +37,8 @@ vagrant@server1:/vagrant$ ./up.sh
 vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 master.pgsql.service.consul
 # check replica IPs
 vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 replica.pgsql.service.consul
+# check prepared query
+vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 master.query.consul
 ```
 
 2. Connect to one of pgsql node
