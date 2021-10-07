@@ -28,9 +28,6 @@ services:
       - "patroni"
       - "patroni-proxy-template"
       - "patroni-proxy"
-    ports:
-    # only expose sidecar port
-    - 0.0.0.0:21001:21001
     networks:
       vpcbr:
         ipv4_address: 169.254.2.12
@@ -50,10 +47,10 @@ services:
         ipv4_address: 169.254.2.11
 
   patroni-proxy-template:
-    # build:
-    #   context: ./patroni/
-    #   dockerfile: Dockerfile.timescale
-    image: hashicorp/consul-template:alpine
+    build:
+      context: ./patroni-proxy-template/
+      dockerfile: Dockerfile
+    image: patroni-proxy-template-image
     container_name: patroni-proxy-template
     restart: on-failure
     depends_on:
@@ -61,10 +58,11 @@ services:
       - "patroni"
     volumes:
     - "./haproxy:/tmp"
+    - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
     command: >
-      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg"
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP patroni-proxy"
     network_mode: "service:patroni"
 
   patroni:

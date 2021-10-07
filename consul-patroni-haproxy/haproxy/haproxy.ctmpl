@@ -11,7 +11,7 @@ defaults
 	timeout check 5s
 
 listen master
-	bind *:5000
+	bind *:5432
 	option httpchk OPTIONS /master
 	http-check expect status 200
 	default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
