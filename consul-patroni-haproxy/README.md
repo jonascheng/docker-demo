@@ -23,9 +23,6 @@ TBD
 $> vagrant ssh server1
 vagrant@server1:~$ cd /vagrant
 vagrant@server1:/vagrant$ ./up.sh
-# create prepared query for master/replica pgsql
-vagrant@server1:/vagrant$ curl http://169.254.1.1:8500/v1/query --request POST --data @prepared_master_query.json
-vagrant@server1:/vagrant$ curl http://169.254.1.1:8500/v1/query --request POST --data @prepared_replica_query.json
 ```
 
 ## Testing procedure
@@ -37,12 +34,20 @@ vagrant@server1:/vagrant$ curl http://169.254.1.1:8500/v1/query --request POST -
 vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 master.pgsql.service.consul
 # check replica IPs
 vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 replica.pgsql.service.consul
-# check prepared query
-vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 master.query.consul
 ```
 
 2. Connect to one of pgsql node
 
 ```console
 vagrant@server1:/vagrant$ docker run -it timescale/timescaledb:1.5.1-pg11 sh -c "psql -U postgres -h 10.1.0.10"
+```
+
+3. Connect to stateless container
+
+```console
+vagrant@server1:/vagrant$ docker exec -it stateless sh
+# connect to master pgsql
+/ # psql -h patroni-proxy -p 5432 -U postgres
+# connect to replica pgsql
+/ # psql -h patroni-proxy -p 5432 -U postgres
 ```

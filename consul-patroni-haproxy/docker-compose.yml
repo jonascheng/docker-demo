@@ -77,8 +77,6 @@ services:
     ports:
       - "0.0.0.0:8008:8008"
       - "0.0.0.0:5432:5432"
-      # only expose sidecar port
-      - "0.0.0.0:21002:21002"
     user: postgres
     volumes:
     - "./patroni:/config"
