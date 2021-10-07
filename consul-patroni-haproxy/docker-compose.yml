@@ -25,6 +25,9 @@ services:
     restart: on-failure
     depends_on:
       - "consul-server"
+      - "patroni"
+      - "patroni-proxy-template"
+      - "patroni-proxy"
     ports:
     # only expose sidecar port
     - 0.0.0.0:21001:21001
@@ -32,26 +35,37 @@ services:
       vpcbr:
         ipv4_address: 169.254.2.12
 
-  stateless_proxy:
-    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: stateless_proxy
+  patroni-proxy:
+    image: haproxy:lts-alpine
+    container_name: patroni-proxy
     restart: on-failure
     depends_on:
       - "consul-server"
-      - "stateless"
+      - "patroni"
+      - "patroni-proxy-template"
+    volumes:
+    - "./haproxy:/usr/local/etc/haproxy:ro"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.11
+
+  patroni-proxy-template:
+    # build:
+    #   context: ./patroni/
+    #   dockerfile: Dockerfile.timescale
+    image: hashicorp/consul-template:alpine
+    container_name: patroni-proxy-template
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "patroni"
+    volumes:
+    - "./haproxy:/tmp"
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-      CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: "/config/stateless_${HOSTIP}.hcl"
-      CENTRAL_CONFIG: "/central_config/stateless_defaults.hcl"
-      CONNECT_SIDECAR_FOR: "stateless_${HOSTIP}"
-    volumes:
-    - "./fake-service/service_config:/config"
-    - "./fake-service/central_config:/central_config"
     command: >
-      sh -c "sleep 10 &&
-            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
-    network_mode: "service:stateless"
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg"
+    network_mode: "service:patroni"
 
   patroni:
     build:
@@ -81,27 +95,6 @@ services:
     networks:
       vpcbr:
         ipv4_address: 169.254.3.1
-  patroni_proxy:
-    image: nicholasjackson/consul-envoy:v1.6.0-v0.10.0
-    container_name: patroni_proxy
-    restart: on-failure
-    depends_on:
-      - "consul-server"
-      - "patroni"
-    environment:
-      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-      CONSUL_GRPC_ADDR: 169.254.1.1:8502
-      SERVICE_CONFIG: "/config/patroni_${HOSTIP}.hcl"
-      CENTRAL_CONFIG: "/central_config/patroni_defaults.hcl"
-      # CONNECT_SIDECAR_FOR: "pgsql"
-      CONNECT_SIDECAR_FOR: "pgsql/patroni_${HOSTIP}"
-    volumes:
-    - "./fake-service/service_config:/config"
-    - "./fake-service/central_config:/central_config"
-    command: >
-      sh -c "sleep 10 &&
-            consul connect envoy -admin-bind 127.0.0.1:0 -- -l debug"
-    network_mode: "service:patroni"
 
 networks:
   vpcbr:
