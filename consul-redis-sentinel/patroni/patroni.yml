@@ -1,0 +1,65 @@
+# scope has to be alphabets in lower case only
+scope: pgsql
+
+consul:
+    dc: dc1
+    # By default Patroni doesn’t register any services in Consul but if you turn it on there will be a service created with the
+    # <scope> name and two tags: master and replica.
+    # In order to access the master node we can use the hostname master.pgsql.service.consul, where pgsql_cluster is our scope name.
+    register_service: true
+
+restapi:
+    listen: 0.0.0.0:8008
+    # aka PATRONI_RESTAPI_CONNECT_ADDRESS
+    # connect_address: 10.1.0.10:8008
+
+bootstrap:
+    dcs:
+        ttl: 130
+        loop_wait: 10
+        retry_timeout: 60
+        maximum_lag_on_failover: 1048576
+        postgresql:
+            use_pg_rewind: true
+            parameters:
+                max_connections: 550
+                max_locks_per_transaction: 512
+                max_worker_processes: 27
+
+    initdb:
+    - encoding: UTF8
+    - data-checksums
+
+    users:
+        admin:
+            password: admin
+            options:
+                - createrole
+                - createdb
+
+postgresql:
+    listen: 0.0.0.0:5432
+    # aka PATRONI_POSTGRESQL_CONNECT_ADDRESS
+    # connect_address: 10.1.0.10:5432
+    # config_dir: /config
+    # aka PATRONI_POSTGRESQL_DATA_DIR
+    # data_dir: /var/lib/postgresql/data
+    pg_hba:
+        - host replication replicator 127.0.0.1/32 md5
+        - host replication replicator 10.1.0.10/16 md5
+        - host replication replicator 10.1.0.20/16 md5
+        - host replication replicator 10.1.0.30/16 md5
+        - host all all 0.0.0.0/0 md5
+    authentication:
+        replication:
+            username: replicator
+            password: replicator
+        superuser:
+            username: postgres
+            password: supersecret
+
+tags:
+    nofailover: false
+    noloadbalance: false
+    clonefrom: false
+    nosync: false

@@ -1,0 +1,101 @@
+---
+version: "3.7"
+
+services:
+
+  consul-server:
+    image: hashicorp/consul:1.8.10
+    container_name: consul-server
+    restart: on-failure
+    command: [
+      "consul", "agent",
+      "-config-file", "/config/config.hcl",
+      "-bind", "${HOSTIP}",
+      "-advertise", "${HOSTIP}",
+      # with consul keygen
+      "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
+    volumes:
+    - "./consul:/config"
+    - "/home/vagrant/consul/data:/consul/data"
+    network_mode: "host"
+
+  stateless:
+    image: timescale/timescaledb:1.5.1-pg11
+    container_name: stateless
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "patroni"
+      - "patroni-proxy-template"
+      - "patroni-proxy"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.12
+
+  patroni-proxy:
+    image: haproxy:lts-alpine
+    container_name: patroni-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "patroni"
+      - "patroni-proxy-template"
+    volumes:
+    - "./haproxy:/usr/local/etc/haproxy:ro"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.11
+
+  patroni-proxy-template:
+    build:
+      context: ./patroni-proxy-template/
+      dockerfile: Dockerfile
+    image: patroni-proxy-template-image
+    container_name: patroni-proxy-template
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "patroni"
+    volumes:
+    - "./haproxy:/tmp"
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+    command: >
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP patroni-proxy"
+    network_mode: "service:patroni"
+
+  patroni:
+    build:
+      context: ./patroni/
+      dockerfile: Dockerfile.timescale
+    image: patroni-image
+    container_name: patroni
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+    ports:
+      - "0.0.0.0:8008:8008"
+      - "0.0.0.0:5432:5432"
+    user: postgres
+    volumes:
+    - "./patroni:/config"
+    - "/home/vagrant/postgresql/data:/var/lib/postgresql/data"
+    environment:
+      PATRONI_NAME: "patroni_${HOSTIP}"
+      PATRONI_RESTAPI_CONNECT_ADDRESS: ${HOSTIP}:8008
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${HOSTIP}:5432
+      PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data
+      PATRONI_CONSUL_HOST: 169.254.1.1:8500
+      PATRONI_CONSUL_URL: http://169.254.1.1:8500
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.3.1
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 169.254.0.0/16
+        gateway: 169.254.1.1
