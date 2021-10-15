@@ -10,7 +10,7 @@ Deploy a Consul datacenter, and an patroni-enabled timescaledb service. These re
 
 ## Architecture
 
-TBD
+![](images/pgsql-cluster.png)
 
 ## Deployment procedure
 
