@@ -4,19 +4,11 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
-$pgsqlvolume = <<-SCRIPT
-sudo mkdir -p /home/vagrant/postgresql/data/
-# change owner to postgres for timescaledb
-sudo chown -R 70:70 /home/vagrant/postgresql/
-sudo chmod -R 750 /home/vagrant/postgresql/
-SCRIPT
-
 Vagrant.configure("2") do |config|
   config.vm.box = "boxomatic/ubuntu-18.04"
   config.vm.box_version = "20210723.0.1"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockercompose
-  config.vm.provision "shell", inline: $pgsqlvolume
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 1024

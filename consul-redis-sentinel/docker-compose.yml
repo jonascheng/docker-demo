@@ -15,82 +15,95 @@ services:
       # with consul keygen
       "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
     volumes:
-    - "./consul:/config"
-    - "/home/vagrant/consul/data:/consul/data"
+    - ./consul:/config
+    - /home/vagrant/consul/data:/consul/data
     network_mode: "host"
 
   stateless:
-    image: timescale/timescaledb:1.5.1-pg11
+    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
     container_name: stateless
     restart: on-failure
     depends_on:
-      - "consul-server"
-      - "patroni"
-      - "patroni-proxy-template"
-      - "patroni-proxy"
+      - consul-server
+      - redis
+      - redis-sentinel
+      # - "patroni-proxy-template"
+      # - "patroni-proxy"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
     networks:
       vpcbr:
         ipv4_address: 169.254.2.12
 
-  patroni-proxy:
-    image: haproxy:lts-alpine
-    container_name: patroni-proxy
+  redis:
+    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
+    container_name: redis
     restart: on-failure
     depends_on:
-      - "consul-server"
-      - "patroni"
-      - "patroni-proxy-template"
-    volumes:
-    - "./haproxy:/usr/local/etc/haproxy:ro"
-    networks:
-      vpcbr:
-        ipv4_address: 169.254.2.11
-
-  patroni-proxy-template:
-    build:
-      context: ./patroni-proxy-template/
-      dockerfile: Dockerfile
-    image: patroni-proxy-template-image
-    container_name: patroni-proxy-template
-    restart: on-failure
-    depends_on:
-      - "consul-server"
-      - "patroni"
-    volumes:
-    - "./haproxy:/tmp"
-    - "/var/run/docker.sock:/var/run/docker.sock"
-    environment:
-      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-    command: >
-      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP patroni-proxy"
-    network_mode: "service:patroni"
-
-  patroni:
-    build:
-      context: ./patroni/
-      dockerfile: Dockerfile.timescale
-    image: patroni-image
-    container_name: patroni
-    restart: on-failure
-    depends_on:
-      - "consul-server"
+      - consul-server
     ports:
-      - "0.0.0.0:8008:8008"
-      - "0.0.0.0:5432:5432"
-    user: postgres
-    volumes:
-    - "./patroni:/config"
-    - "/home/vagrant/postgresql/data:/var/lib/postgresql/data"
+      - '0.0.0.0:6379:6379'
     environment:
-      PATRONI_NAME: "patroni_${HOSTIP}"
-      PATRONI_RESTAPI_CONNECT_ADDRESS: ${HOSTIP}:8008
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${HOSTIP}:5432
-      PATRONI_POSTGRESQL_DATA_DIR: /var/lib/postgresql/data
-      PATRONI_CONSUL_HOST: 169.254.1.1:8500
-      PATRONI_CONSUL_URL: http://169.254.1.1:8500
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    user: root
+    volumes:
+      - /home/vagrant/redis/data:/bitnami/redis/data
     networks:
       vpcbr:
         ipv4_address: 169.254.3.1
+
+  redis-sentinel:
+    image: docker.io/bitnami/redis-sentinel:5.0.4-debian-9-r39
+    container_name: redis-sentinel
+    restart: on-failure
+    depends_on:
+      - consul-server
+      - redis
+    ports:
+      - '0.0.0.0:26379:26379'
+    environment:
+      - REDIS_MASTER_HOST=${HOSTIP}
+      - REDIS_MASTER_SET=dc1
+    user: root
+    volumes:
+      - /home/vagrant/redis-sentinel/data:/bitnami
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.3.2
+
+  # patroni-proxy:
+  #   image: haproxy:lts-alpine
+  #   container_name: patroni-proxy
+  #   restart: on-failure
+  #   depends_on:
+  #     - "consul-server"
+  #     - "patroni"
+  #     - "patroni-proxy-template"
+  #   volumes:
+  #   - "./haproxy:/usr/local/etc/haproxy:ro"
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 169.254.2.11
+
+  # patroni-proxy-template:
+  #   build:
+  #     context: ./patroni-proxy-template/
+  #     dockerfile: Dockerfile
+  #   image: patroni-proxy-template-image
+  #   container_name: patroni-proxy-template
+  #   restart: on-failure
+  #   depends_on:
+  #     - "consul-server"
+  #     - "patroni"
+  #   volumes:
+  #   - "./haproxy:/tmp"
+  #   - "/var/run/docker.sock:/var/run/docker.sock"
+  #   environment:
+  #     CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+  #   command: >
+  #     consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP patroni-proxy"
+  #   network_mode: "service:patroni"
 
 networks:
   vpcbr:
