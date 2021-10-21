@@ -44,7 +44,8 @@ services:
     ports:
       - '0.0.0.0:6379:6379'
     environment:
-      # - REDIS_REPLICATION_MODE=master
+      - REDIS_REPLICATION_MODE=${REPLICATION}
+      - REDIS_MASTER_HOST=10.1.0.10
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
     user: root
@@ -64,7 +65,7 @@ services:
     ports:
       - '0.0.0.0:26379:26379'
     environment:
-      - REDIS_MASTER_HOST=${HOSTIP}
+      - REDIS_MASTER_HOST=10.1.0.10
       - REDIS_MASTER_SET=dc1
     user: root
     volumes:
