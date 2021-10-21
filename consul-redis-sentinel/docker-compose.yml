@@ -44,6 +44,7 @@ services:
     ports:
       - '0.0.0.0:6379:6379'
     environment:
+      # - REDIS_REPLICATION_MODE=master
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
     user: root
@@ -67,7 +68,7 @@ services:
       - REDIS_MASTER_SET=dc1
     user: root
     volumes:
-      - /home/vagrant/redis-sentinel/data:/bitnami
+      - /home/vagrant/redis-sentinel/data:/bitnami/redis-sentinel/data
     networks:
       vpcbr:
         ipv4_address: 169.254.3.2
