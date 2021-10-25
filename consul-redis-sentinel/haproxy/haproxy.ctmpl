@@ -11,16 +11,32 @@ defaults
 	timeout check 5s
 
 listen master
-	bind *:5432
-	option httpchk OPTIONS /master
-	http-check expect status 200
+	bind *:{{ env "REDIS_PORT_NUMBER" }}
+	# option redis-check
+	option tcp-check
+	tcp-check connect
+	# tcp-check send AUTH\ "${REDIS_PASSWORD}"\r\n
+	tcp-check send PING\r\n
+	tcp-check expect string PONG
+	tcp-check send info\ replication\r\n
+	tcp-check expect string role:master
+	tcp-check send QUIT\r\n
+	tcp-check expect string +OK
 	default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{{ range ls "service/pgsql/members" }}	server {{ .Key }} {{ $data := .Value | parseJSON }}{{ index (split "/" $data.conn_url) 2 }} maxconn 100 check port {{ index (split ":" (index (split "/" $data.api_url) 2)) 1 }}
+{{ range nodes }}	server {{ .Node }} {{ .Address }}:{{ env "REDIS_PORT_NUMBER" }} maxconn 100 check port {{ env "REDIS_PORT_NUMBER" }}
 {{ end }}
 listen replica
-	bind *:5433
-	option httpchk OPTIONS /replica
-	http-check expect status 200
+	bind *:{{ env "REDIS_SLAVE_INGRESS_PORT_NUMBER" }}
+	# option redis-check
+	option tcp-check
+	tcp-check connect
+	# tcp-check send AUTH\ "${REDIS_PASSWORD}"\r\n
+	tcp-check send PING\r\n
+	tcp-check expect string PONG
+	tcp-check send info\ replication\r\n
+	tcp-check expect string role:slave
+	tcp-check send QUIT\r\n
+	tcp-check expect string +OK
     default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{{ range ls "service/pgsql/members" }}	server {{ .Key }} {{ $data := .Value | parseJSON }}{{ index (split "/" $data.conn_url) 2 }} maxconn 100 check port {{ index (split ":" (index (split "/" $data.api_url) 2)) 1 }}
+{{ range nodes }}	server {{ .Node }} {{ .Address }}:{{ env "REDIS_PORT_NUMBER" }} maxconn 100 check port {{ env "REDIS_PORT_NUMBER" }}
 {{ end }}

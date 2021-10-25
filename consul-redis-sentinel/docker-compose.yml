@@ -27,8 +27,6 @@ services:
       - consul-server
       - redis
       - redis-sentinel
-      # - "patroni-proxy-template"
-      # - "patroni-proxy"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     networks:
@@ -74,38 +72,40 @@ services:
       vpcbr:
         ipv4_address: 169.254.3.2
 
-  # patroni-proxy:
-  #   image: haproxy:lts-alpine
-  #   container_name: patroni-proxy
-  #   restart: on-failure
-  #   depends_on:
-  #     - "consul-server"
-  #     - "patroni"
-  #     - "patroni-proxy-template"
-  #   volumes:
-  #   - "./haproxy:/usr/local/etc/haproxy:ro"
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 169.254.2.11
+  redis-proxy:
+    image: haproxy:lts-alpine
+    container_name: redis-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "redis"
+      - "redis-proxy-template"
+    volumes:
+    - "./haproxy:/usr/local/etc/haproxy:ro"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.11
 
-  # patroni-proxy-template:
-  #   build:
-  #     context: ./patroni-proxy-template/
-  #     dockerfile: Dockerfile
-  #   image: patroni-proxy-template-image
-  #   container_name: patroni-proxy-template
-  #   restart: on-failure
-  #   depends_on:
-  #     - "consul-server"
-  #     - "patroni"
-  #   volumes:
-  #   - "./haproxy:/tmp"
-  #   - "/var/run/docker.sock:/var/run/docker.sock"
-  #   environment:
-  #     CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-  #   command: >
-  #     consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP patroni-proxy"
-  #   network_mode: "service:patroni"
+  redis-proxy-template:
+    build:
+      context: ./redis-proxy-template/
+      dockerfile: Dockerfile
+    image: redis-proxy-template-image
+    container_name: redis-proxy-template
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "redis-sentinel"
+    volumes:
+    - "./haproxy:/tmp"
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      REDIS_PORT_NUMBER: 6379
+      REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
+    command: >
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
+    network_mode: "service:redis"
 
 networks:
   vpcbr:
