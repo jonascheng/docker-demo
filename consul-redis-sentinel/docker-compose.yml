@@ -65,6 +65,10 @@ services:
     environment:
       - REDIS_MASTER_HOST=10.1.0.10
       - REDIS_MASTER_SET=dc1
+      # Number of milliseconds before master is declared down. Default: 60000.
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
+      # Specifies the failover timeout in milliseconds. Default: 180000.
+      - REDIS_SENTINEL_FAILOVER_TIMEOUT=20000
     user: root
     volumes:
       - /home/vagrant/redis-sentinel/data:/bitnami/redis-sentinel/data
