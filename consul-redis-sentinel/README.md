@@ -1,6 +1,8 @@
 ## Overview
 
-Deploy a Consul datacenter, and an patroni-enabled timescaledb service. These resources will be used to provide complete service mesh and timescaledb cluster capabilities.
+Deploy a Consul datacenter, and an sentinel-enabled redis service. These resources will be used to provide complete service mesh and redis high availability capabilities.
+
+To prevent from confusing from redis cluster, avoid to use term - redis cluster.
 
 ## Prerequisites
 
@@ -10,7 +12,7 @@ Deploy a Consul datacenter, and an patroni-enabled timescaledb service. These re
 
 ## Architecture
 
-TBD
+![](images/redis-cluster.png)
 
 ## Deployment procedure
 
@@ -27,27 +29,18 @@ vagrant@server1:/vagrant$ ./up.sh
 
 ## Testing procedure
 
-1. Service has been registered in consul correctly.
+1. Connect to one of redis node
 
 ```console
-# check master IP
-vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 master.pgsql.service.consul
-# check replica IPs
-vagrant@server1:/vagrant$ dig @169.254.1.1 -p 8600 replica.pgsql.service.consul
+vagrant@server1:/vagrant$ docker run -it docker.io/bitnami/redis:5.0.4-debian-9-r40 sh -c "redis-cli -h 10.1.0.10"
 ```
 
-2. Connect to one of pgsql node
-
-```console
-vagrant@server1:/vagrant$ docker run -it timescale/timescaledb:1.5.1-pg11 sh -c "psql -U postgres -h 10.1.0.10"
-```
-
-3. Connect to stateless container
+2. Connect to stateless container
 
 ```console
 vagrant@server1:/vagrant$ docker exec -it stateless sh
-# connect to master pgsql
-/ # psql -h patroni-proxy -p 5432 -U postgres
-# connect to replica pgsql
-/ # psql -h patroni-proxy -p 5432 -U postgres
+# connect to master redis
+/ # redis-cli -h redis-proxy -p 6379
+# connect to replica redis
+/ # redis-cli -h redis-proxy -p 6380
 ```
