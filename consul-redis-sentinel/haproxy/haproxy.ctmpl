@@ -15,7 +15,7 @@ listen master
 	# option redis-check
 	option tcp-check
 	tcp-check connect
-	# tcp-check send AUTH\ "${REDIS_PASSWORD}"\r\n
+	tcp-check send AUTH\ {{ env "REDIS_PASSWORD" }}\r\n
 	tcp-check send PING\r\n
 	tcp-check expect string PONG
 	tcp-check send info\ replication\r\n
@@ -30,7 +30,7 @@ listen replica
 	# option redis-check
 	option tcp-check
 	tcp-check connect
-	# tcp-check send AUTH\ "${REDIS_PASSWORD}"\r\n
+	tcp-check send AUTH\ {{ env "REDIS_PASSWORD" }}\r\n
 	tcp-check send PING\r\n
 	tcp-check expect string PONG
 	tcp-check send info\ replication\r\n
