@@ -19,101 +19,91 @@ services:
     - /home/vagrant/consul/data:/consul/data
     network_mode: "host"
 
-  stateless:
-    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
-    container_name: stateless
-    restart: on-failure
-    depends_on:
-      - consul-server
-      - redis
-      - redis-sentinel
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    networks:
-      vpcbr:
-        ipv4_address: 169.254.2.12
+  # stateless:
+  #   image: docker.io/bitnami/kafka:2.2.1-debian-9-r33
+  #   container_name: stateless
+  #   restart: on-failure
+  #   depends_on:
+  #     - consul-server
+  #     - redis
+  #     - redis-sentinel
+  #   environment:
+  #     - ALLOW_EMPTY_PASSWORD=yes
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 169.254.2.12
 
-  redis:
-    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
-    container_name: redis
+  kafka:
+    image: docker.io/bitnami/kafka:2.2.1-debian-9-r33
+    container_name: kafka
     restart: on-failure
+    ports:
+      - "0.0.0.0:9092:9092"
+    volumes:
+      - "/home/vagrant/kafka/data:/bitnami/kafka/data"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    user: root
     depends_on:
       - consul-server
-    ports:
-      - '0.0.0.0:6379:6379'
-    environment:
-      - REDIS_REPLICATION_MODE=${REPLICATION}
-      - REDIS_MASTER_HOST=10.1.0.10
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      # - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_PASSWORD=supersecret
-      - REDIS_MASTER_PASSWORD=supersecret
-    user: root
-    volumes:
-      - /home/vagrant/redis/data:/bitnami/redis/data
+      - zookeeper
     networks:
       vpcbr:
         ipv4_address: 169.254.3.1
 
-  redis-sentinel:
-    image: docker.io/bitnami/redis-sentinel:5.0.4-debian-9-r39
-    container_name: redis-sentinel
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.4.14-debian-9-r33
+    container_name: zookeeper
     restart: on-failure
+    ports:
+      - "0.0.0.0:2181:2181"
+    volumes:
+      - "/home/vagrant/zookeeper/data:/bitnami/zookeeper/data"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    user: root
     depends_on:
       - consul-server
-      - redis
-    ports:
-      - '0.0.0.0:26379:26379'
-    environment:
-      - REDIS_MASTER_HOST=10.1.0.10
-      - REDIS_MASTER_SET=dc1
-      - REDIS_MASTER_PASSWORD=supersecret
-      # Number of milliseconds before master is declared down. Default: 60000.
-      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
-      # Specifies the failover timeout in milliseconds. Default: 180000.
-      - REDIS_SENTINEL_FAILOVER_TIMEOUT=20000
-    user: root
-    volumes:
-      - /home/vagrant/redis-sentinel/data:/bitnami/redis-sentinel/data
     networks:
       vpcbr:
         ipv4_address: 169.254.3.2
 
-  redis-proxy:
-    image: haproxy:lts-alpine
-    container_name: redis-proxy
-    restart: on-failure
-    depends_on:
-      - "consul-server"
-      - "redis"
-      - "redis-proxy-template"
-    volumes:
-    - "./haproxy:/usr/local/etc/haproxy:ro"
-    networks:
-      vpcbr:
-        ipv4_address: 169.254.2.11
+  # redis-proxy:
+  #   image: haproxy:lts-alpine
+  #   container_name: redis-proxy
+  #   restart: on-failure
+  #   depends_on:
+  #     - "consul-server"
+  #     - "redis"
+  #     - "redis-proxy-template"
+  #   volumes:
+  #   - "./haproxy:/usr/local/etc/haproxy:ro"
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 169.254.2.11
 
-  redis-proxy-template:
-    build:
-      context: ./redis-proxy-template/
-      dockerfile: Dockerfile
-    image: redis-proxy-template-image
-    container_name: redis-proxy-template
-    restart: on-failure
-    depends_on:
-      - "consul-server"
-      - "redis-sentinel"
-    volumes:
-    - "./haproxy:/tmp"
-    - "/var/run/docker.sock:/var/run/docker.sock"
-    environment:
-      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-      REDIS_PASSWORD: supersecret
-      REDIS_PORT_NUMBER: 6379
-      REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
-    command: >
-      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
-    network_mode: "service:redis"
+  # redis-proxy-template:
+  #   build:
+  #     context: ./redis-proxy-template/
+  #     dockerfile: Dockerfile
+  #   image: redis-proxy-template-image
+  #   container_name: redis-proxy-template
+  #   restart: on-failure
+  #   depends_on:
+  #     - "consul-server"
+  #     - "redis-sentinel"
+  #   volumes:
+  #   - "./haproxy:/tmp"
+  #   - "/var/run/docker.sock:/var/run/docker.sock"
+  #   environment:
+  #     CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+  #     REDIS_PASSWORD: supersecret
+  #     REDIS_PORT_NUMBER: 6379
+  #     REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
+  #   command: >
+  #     consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
+  #   network_mode: "service:redis"
 
 networks:
   vpcbr:
