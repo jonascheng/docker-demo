@@ -44,3 +44,7 @@ vagrant@server1:/vagrant$ docker exec -it stateless sh
 # connect to replica redis
 / # redis-cli -h redis-proxy -p 6380
 ```
+
+# References
+
+* [Getting started with Kafka tutorial](http://cloudurable.com/blog/kafka-tutorial-kafka-from-command-line/index.html)
