@@ -1,0 +1,124 @@
+---
+version: "3.7"
+
+services:
+
+  consul-server:
+    image: hashicorp/consul:1.8.10
+    container_name: consul-server
+    restart: on-failure
+    command: [
+      "consul", "agent",
+      "-config-file", "/config/config.hcl",
+      "-bind", "${HOSTIP}",
+      "-advertise", "${HOSTIP}",
+      # with consul keygen
+      "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
+    volumes:
+    - ./consul:/config
+    - /home/vagrant/consul/data:/consul/data
+    network_mode: "host"
+
+  stateless:
+    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
+    container_name: stateless
+    restart: on-failure
+    depends_on:
+      - consul-server
+      - redis
+      - redis-sentinel
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.12
+
+  redis:
+    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
+    container_name: redis
+    restart: on-failure
+    depends_on:
+      - consul-server
+    ports:
+      - '0.0.0.0:6379:6379'
+    environment:
+      - REDIS_REPLICATION_MODE=${REPLICATION}
+      - REDIS_MASTER_HOST=10.1.0.10
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      # - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=supersecret
+      - REDIS_MASTER_PASSWORD=supersecret
+    user: root
+    volumes:
+      - /home/vagrant/redis/data:/bitnami/redis/data
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.3.1
+
+  redis-sentinel:
+    image: docker.io/bitnami/redis-sentinel:5.0.4-debian-9-r39
+    container_name: redis-sentinel
+    restart: on-failure
+    depends_on:
+      - consul-server
+      - redis
+    ports:
+      - '0.0.0.0:26379:26379'
+    environment:
+      - REDIS_MASTER_HOST=10.1.0.10
+      - REDIS_MASTER_SET=dc1
+      - REDIS_MASTER_PASSWORD=supersecret
+      # Number of milliseconds before master is declared down. Default: 60000.
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
+      # Specifies the failover timeout in milliseconds. Default: 180000.
+      - REDIS_SENTINEL_FAILOVER_TIMEOUT=20000
+    user: root
+    volumes:
+      - /home/vagrant/redis-sentinel/data:/bitnami/redis-sentinel/data
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.3.2
+
+  redis-proxy:
+    image: haproxy:lts-alpine
+    container_name: redis-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "redis"
+      - "redis-proxy-template"
+    volumes:
+    - "./haproxy:/usr/local/etc/haproxy:ro"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.11
+
+  redis-proxy-template:
+    build:
+      context: ./redis-proxy-template/
+      dockerfile: Dockerfile
+    image: redis-proxy-template-image
+    container_name: redis-proxy-template
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - "redis-sentinel"
+    volumes:
+    - "./haproxy:/tmp"
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      REDIS_PASSWORD: supersecret
+      REDIS_PORT_NUMBER: 6379
+      REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
+    command: >
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
+    network_mode: "service:redis"
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 169.254.0.0/16
+        gateway: 169.254.1.1
