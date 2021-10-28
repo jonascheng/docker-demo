@@ -29,20 +29,27 @@ vagrant@server1:/vagrant$ ./up.sh
 
 ## Testing procedure
 
-1. Connect to one of redis node
+1. Create topic on one of kafka node
 
 ```console
-vagrant@server1:/vagrant$ docker run -it docker.io/bitnami/redis:5.0.4-debian-9-r40 sh -c "redis-cli -h 10.1.0.10"
+vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 13 --topic my-topic"
 ```
 
-2. Connect to stateless container
+2. Publish message on one of kafka node
 
 ```console
-vagrant@server1:/vagrant$ docker exec -it stateless sh
-# connect to master redis
-/ # redis-cli -h redis-proxy -p 6379
-# connect to replica redis
-/ # redis-cli -h redis-proxy -p 6380
+vagrant@server2:/vagrant$ docker exec -it kafka sh -c "kafka-console-producer.sh \
+    --broker-list localhost:9092 \
+    --topic my-topic"
+```
+
+3. List messgae on one of kafka node
+
+```console
+vagrant@server3:/vagrant$ docker exec -it kafka sh -c "kafka-console-consumer.sh \
+    --bootstrap-server localhost:9092 \
+    --topic my-topic \
+    --from-beginning"
 ```
 
 # References
