@@ -10,6 +10,7 @@ case "${OS}" in
 esac
 
 case "${HOSTIP}" in
-    10.1.0.10*) HOSTIP=${HOSTIP} REPLICATION=master docker-compose up;;
-    *)          HOSTIP=${HOSTIP} REPLICATION=slave  docker-compose up;;
+    10.1.0.10*) HOSTIP=${HOSTIP} KAFKA_BROKER_ID=1 ZOO_SERVER_ID=1 ZOO_SERVERS=0.0.0.0:2888:3888,10.1.0.20:2888:3888,10.1.0.30:2888:3888 docker-compose up;;
+    10.1.0.20*) HOSTIP=${HOSTIP} KAFKA_BROKER_ID=2 ZOO_SERVER_ID=2 ZOO_SERVERS=10.1.0.10:2888:3888,0.0.0.0:2888:3888,10.1.0.30:2888:3888 docker-compose up;;
+    *)          HOSTIP=${HOSTIP} KAFKA_BROKER_ID=3 ZOO_SERVER_ID=3 ZOO_SERVERS=10.1.0.10:2888:3888,10.1.0.20:2888:3888,0.0.0.0:2888:3888 docker-compose up;;
 esac

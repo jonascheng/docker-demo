@@ -34,7 +34,7 @@ vagrant@server1:/vagrant$ ./up.sh
 ```console
 vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh \
     --create --bootstrap-server localhost:9092 \
-    --replication-factor 1 \
+    --replication-factor 3 \
     --partitions 13 \
     --topic my-topic"
 ```
