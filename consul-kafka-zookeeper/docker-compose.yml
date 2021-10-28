@@ -62,8 +62,10 @@ services:
     container_name: zookeeper
     restart: on-failure
     ports:
-      - "0.0.0.0:2181:2181"
+      - "2181:2181"
+      # quorumPort
       - "0.0.0.0:2888:2888"
+      # electionPort
       - "0.0.0.0:3888:3888"
     volumes:
       - "/home/vagrant/zookeeper/data:/bitnami/zookeeper/data"
