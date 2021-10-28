@@ -32,7 +32,11 @@ vagrant@server1:/vagrant$ ./up.sh
 1. Create topic on one of kafka node
 
 ```console
-vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 13 --topic my-topic"
+vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh \
+    --create --bootstrap-server localhost:9092 \
+    --replication-factor 1 \
+    --partitions 13 \
+    --topic my-topic"
 ```
 
 2. Publish message on one of kafka node
