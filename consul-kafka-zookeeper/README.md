@@ -32,8 +32,8 @@ vagrant@server1:/vagrant$ ./up.sh
 1. Create topic on one of kafka node
 
 ```console
-vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh \
-    --create --bootstrap-server localhost:9092 \
+vagrant@server1:/vagrant$ docker exec -it stateless sh -c "kafka-topics.sh \
+    --create --bootstrap-server kafka:9092 \
     --replication-factor 3 \
     --partitions 13 \
     --topic my-topic"
@@ -42,16 +42,16 @@ vagrant@server1:/vagrant$ docker exec -it kafka sh -c "kafka-topics.sh \
 2. Publish message on one of kafka node
 
 ```console
-vagrant@server2:/vagrant$ docker exec -it kafka sh -c "kafka-console-producer.sh \
-    --broker-list localhost:9092 \
+vagrant@server2:/vagrant$ docker exec -it stateless sh -c "kafka-console-producer.sh \
+    --broker-list kafka:9092 \
     --topic my-topic"
 ```
 
 3. List messgae on one of kafka node
 
 ```console
-vagrant@server3:/vagrant$ docker exec -it kafka sh -c "kafka-console-consumer.sh \
-    --bootstrap-server localhost:9092 \
+vagrant@server3:/vagrant$ docker exec -it stateless sh -c "kafka-console-consumer.sh \
+    --bootstrap-server kafka:9092 \
     --topic my-topic \
     --from-beginning"
 ```

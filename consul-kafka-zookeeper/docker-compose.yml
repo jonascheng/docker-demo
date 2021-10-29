@@ -19,19 +19,18 @@ services:
     - /home/vagrant/consul/data:/consul/data
     network_mode: "host"
 
-  # stateless:
-  #   image: docker.io/bitnami/kafka:2.2.1-debian-9-r33
-  #   container_name: stateless
-  #   restart: on-failure
-  #   depends_on:
-  #     - consul-server
-  #     - redis
-  #     - redis-sentinel
-  #   environment:
-  #     - ALLOW_EMPTY_PASSWORD=yes
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 169.254.2.12
+  stateless:
+    image: docker.io/bitnami/kafka:2.2.1-debian-9-r33
+    container_name: stateless
+    restart: on-failure
+    depends_on:
+      - consul-server
+      - kafka
+      - zookeeper
+    command: [ "sleep", "infinity" ]
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.12
 
   kafka:
     image: docker.io/bitnami/kafka:2.2.1-debian-9-r33
