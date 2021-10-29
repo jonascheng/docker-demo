@@ -10,33 +10,10 @@ defaults
 	timeout server 30m
 	timeout check 5s
 
-listen master
-	bind *:{{ env "REDIS_PORT_NUMBER" }}
-	# option redis-check
-	option tcp-check
-	tcp-check connect
-	tcp-check send AUTH\ {{ env "REDIS_PASSWORD" }}\r\n
-	tcp-check send PING\r\n
-	tcp-check expect string PONG
-	tcp-check send info\ replication\r\n
-	tcp-check expect string role:master
-	tcp-check send QUIT\r\n
-	tcp-check expect string +OK
+listen kafka
+	bind *:{{ env "KAFKA_PORT_NUMBER" }}
+	mode tcp
+	balance roundrobin
 	default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{{ range nodes }}	server {{ .Node }} {{ .Address }}:{{ env "REDIS_PORT_NUMBER" }} maxconn 100 check port {{ env "REDIS_PORT_NUMBER" }}
-{{ end }}
-listen replica
-	bind *:{{ env "REDIS_SLAVE_INGRESS_PORT_NUMBER" }}
-	# option redis-check
-	option tcp-check
-	tcp-check connect
-	tcp-check send AUTH\ {{ env "REDIS_PASSWORD" }}\r\n
-	tcp-check send PING\r\n
-	tcp-check expect string PONG
-	tcp-check send info\ replication\r\n
-	tcp-check expect string role:slave
-	tcp-check send QUIT\r\n
-	tcp-check expect string +OK
-    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
-{{ range nodes }}	server {{ .Node }} {{ .Address }}:{{ env "REDIS_PORT_NUMBER" }} maxconn 100 check port {{ env "REDIS_PORT_NUMBER" }}
+{{ range nodes }}	server {{ .Node }} {{ .Address }}:{{ env "KAFKA_PORT_NUMBER" }} maxconn 100 check port {{ env "KAFKA_PORT_NUMBER" }}
 {{ end }}

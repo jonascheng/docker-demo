@@ -33,7 +33,7 @@ vagrant@server1:/vagrant$ ./up.sh
 
 ```console
 vagrant@server1:/vagrant$ docker exec -it stateless sh -c "kafka-topics.sh \
-    --create --bootstrap-server kafka:9092 \
+    --create --bootstrap-server kafka-proxy:9092 \
     --replication-factor 3 \
     --partitions 13 \
     --topic my-topic"
@@ -43,7 +43,7 @@ vagrant@server1:/vagrant$ docker exec -it stateless sh -c "kafka-topics.sh \
 
 ```console
 vagrant@server2:/vagrant$ docker exec -it stateless sh -c "kafka-console-producer.sh \
-    --broker-list kafka:9092 \
+    --broker-list kafka-proxy:9092 \
     --topic my-topic"
 ```
 
@@ -51,7 +51,7 @@ vagrant@server2:/vagrant$ docker exec -it stateless sh -c "kafka-console-produce
 
 ```console
 vagrant@server3:/vagrant$ docker exec -it stateless sh -c "kafka-console-consumer.sh \
-    --bootstrap-server kafka:9092 \
+    --bootstrap-server kafka-proxy:9092 \
     --topic my-topic \
     --from-beginning"
 ```
@@ -59,3 +59,4 @@ vagrant@server3:/vagrant$ docker exec -it stateless sh -c "kafka-console-consume
 # References
 
 * [Getting started with Kafka tutorial](http://cloudurable.com/blog/kafka-tutorial-kafka-from-command-line/index.html)
+* [Enable Security For Kafka And Zookeeper](https://docs.bitnami.com/kubernetes/infrastructure/kafka/administration/enable-security/)

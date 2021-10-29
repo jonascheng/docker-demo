@@ -61,7 +61,7 @@ services:
     container_name: zookeeper
     restart: on-failure
     ports:
-      - "2181:2181"
+      # - "2181:2181"
       # quorumPort
       - "0.0.0.0:2888:2888"
       # electionPort
@@ -79,41 +79,41 @@ services:
       vpcbr:
         ipv4_address: 169.254.3.2
 
-  # redis-proxy:
-  #   image: haproxy:lts-alpine
-  #   container_name: redis-proxy
-  #   restart: on-failure
-  #   depends_on:
-  #     - "consul-server"
-  #     - "redis"
-  #     - "redis-proxy-template"
-  #   volumes:
-  #   - "./haproxy:/usr/local/etc/haproxy:ro"
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 169.254.2.11
+  kafka-proxy:
+    image: haproxy:lts-alpine
+    container_name: kafka-proxy
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - kafka
+      - kafka-proxy-template
+      - zookeeper
+    volumes:
+    - "./haproxy:/usr/local/etc/haproxy:ro"
+    networks:
+      vpcbr:
+        ipv4_address: 169.254.2.11
 
-  # redis-proxy-template:
-  #   build:
-  #     context: ./redis-proxy-template/
-  #     dockerfile: Dockerfile
-  #   image: redis-proxy-template-image
-  #   container_name: redis-proxy-template
-  #   restart: on-failure
-  #   depends_on:
-  #     - "consul-server"
-  #     - "redis-sentinel"
-  #   volumes:
-  #   - "./haproxy:/tmp"
-  #   - "/var/run/docker.sock:/var/run/docker.sock"
-  #   environment:
-  #     CONSUL_HTTP_ADDR: http://169.254.1.1:8500
-  #     REDIS_PASSWORD: supersecret
-  #     REDIS_PORT_NUMBER: 6379
-  #     REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
-  #   command: >
-  #     consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
-  #   network_mode: "service:redis"
+  kafka-proxy-template:
+    build:
+      context: ./kafka-proxy-template/
+      dockerfile: Dockerfile
+    image: kafka-proxy-template-image
+    container_name: kafka-proxy-template
+    restart: on-failure
+    depends_on:
+      - "consul-server"
+      - kafka
+      - zookeeper
+    volumes:
+    - "./haproxy:/tmp"
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      CONSUL_HTTP_ADDR: http://169.254.1.1:8500
+      KAFKA_PORT_NUMBER: 9092
+    command: >
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP kafka-proxy"
+    network_mode: "service:kafka"
 
 networks:
   vpcbr:
