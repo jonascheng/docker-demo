@@ -46,9 +46,15 @@ services:
       - KAFKA_CFG_LISTENERS=CLIENT://:9092
       - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://${HOSTIP}:9092
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT
+      # ALLOW_PLAINTEXT_LISTENER is recommended only for development.
       - ALLOW_PLAINTEXT_LISTENER=yes
+      # KAFKA_ZOOKEEPER_PROTOCOL: Authentication protocol for Zookeeper connections. Allowed protocols: PLAINTEXT, SASL, SSL, and SASL_SSL. Defaults: PLAINTEXT.
+      - KAFKA_ZOOKEEPER_PROTOCOL=sasl
+      - KAFKA_CLIENT_USER=user
+      - KAFKA_CLIENT_PASSWORD=supersecret
       # zookeepr configurations
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ZOOKEEPER_PROTOCOL=SASL
       # KAFKA_ZOOKEEPER_USER: Kafka Zookeeper user for SASL authentication. No defaults.
       - KAFKA_ZOOKEEPER_USER=kafka
       # KAFKA_ZOOKEEPER_PASSWORD: Kafka Zookeeper user password for SASL authentication. No defaults.
