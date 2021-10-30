@@ -48,13 +48,14 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT
       # ALLOW_PLAINTEXT_LISTENER is recommended only for development.
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CLIENT_USERS=user
+      - KAFKA_CLIENT_USER=kafka
       - KAFKA_CLIENT_PASSWORDS=supersecret
+      # - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
       # zookeepr configurations
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      #- KAFKA_ZOOKEEPER_PROTOCOL=SASL
-      #- KAFKA_ZOOKEEPER_USER=zk
-      #- KAFKA_ZOOKEEPER_PASSWORD=supersecret
+      - KAFKA_ZOOKEEPER_PROTOCOL=SASL
+      - KAFKA_ZOOKEEPER_USER=zk
+      - KAFKA_ZOOKEEPER_PASSWORD=supersecret
     user: root
     depends_on:
       - consul-server
@@ -77,7 +78,7 @@ services:
       - "/home/vagrant/zookeeper/data:/bitnami/zookeeper/data"
     environment:
       # ALLOW_ANONYMOUS_LOGIN is recommended only for development.
-      # - ALLOW_ANONYMOUS_LOGIN=yes
+      - ALLOW_ANONYMOUS_LOGIN=no
       - ZOO_ENABLE_AUTH=yes
       - ZOO_SERVER_ID=${ZOO_SERVER_ID}
       - ZOO_SERVERS=${ZOO_SERVERS}
