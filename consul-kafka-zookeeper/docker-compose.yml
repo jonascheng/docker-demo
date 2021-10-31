@@ -27,6 +27,8 @@ services:
       - consul-server
       - kafka
       - zookeeper
+    volumes:
+      - "/vagrant:/tmp:ro"
     command: [ "sleep", "infinity" ]
     networks:
       vpcbr:
@@ -38,19 +40,33 @@ services:
     restart: on-failure
     ports:
       - "0.0.0.0:9092:9092"
+      - "0.0.0.0:9093:9093"
     volumes:
       - "/home/vagrant/kafka/data:/bitnami/kafka/data"
     environment:
       - KAFKA_BROKER_ID=${KAFKA_BROKER_ID}
       - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
-      - KAFKA_CFG_LISTENERS=CLIENT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://${HOSTIP}:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,INTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://${HOSTIP}:9092,INTERNAL://${HOSTIP}::9093
+
+      ##########
+      # for development with insecured communication for kafka server and client
+      ##########
       # ALLOW_PLAINTEXT_LISTENER is recommended only for development.
-      - ALLOW_PLAINTEXT_LISTENER=yes
+      # - ALLOW_PLAINTEXT_LISTENER=yes
+      # - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,INTERNAL:PLAINTEXT
+      ##########
+      # for production with secured communication for kafka server and client
+      ##########
+      - ALLOW_PLAINTEXT_LISTENER=no
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:SASL_PLAINTEXT,INTERNAL:SASL_PLAINTEXT
+      - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN
+      - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
       - KAFKA_CLIENT_USER=kafka
       - KAFKA_CLIENT_PASSWORDS=supersecret
-      # - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
+      - KAFKA_INTER_BROKER_USER=kafka
+      - KAFKA_INTER_BROKER_PASSWORD=supersecret
+
       # zookeepr configurations
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_ZOOKEEPER_PROTOCOL=SASL

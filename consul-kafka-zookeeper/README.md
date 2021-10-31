@@ -36,7 +36,8 @@ vagrant@server1:/vagrant$ docker exec -it stateless sh -c "kafka-topics.sh \
     --create --bootstrap-server kafka-proxy:9092 \
     --replication-factor 3 \
     --partitions 13 \
-    --topic my-topic"
+    --topic my-topic \
+    --command-config /tmp/kafka-client/client.properties"
 ```
 
 2. Publish message on one of kafka node
@@ -44,7 +45,8 @@ vagrant@server1:/vagrant$ docker exec -it stateless sh -c "kafka-topics.sh \
 ```console
 vagrant@server2:/vagrant$ docker exec -it stateless sh -c "kafka-console-producer.sh \
     --broker-list kafka-proxy:9092 \
-    --topic my-topic"
+    --topic my-topic \
+    --producer.config /tmp/kafka-client/client.properties"
 ```
 
 3. List messgae on one of kafka node
@@ -53,7 +55,8 @@ vagrant@server2:/vagrant$ docker exec -it stateless sh -c "kafka-console-produce
 vagrant@server3:/vagrant$ docker exec -it stateless sh -c "kafka-console-consumer.sh \
     --bootstrap-server kafka-proxy:9092 \
     --topic my-topic \
-    --from-beginning"
+    --from-beginning \
+    --consumer.config /tmp/kafka-client/client.properties"
 ```
 
 # References
