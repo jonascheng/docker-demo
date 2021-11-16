@@ -14,6 +14,6 @@ docker build -t ${DOCKER_IMAGE} .
 for DB_HOST in 10.1.0.10 10.1.0.20 10.1.0.30
 do
     echo ${DB_HOST}: select count* from pgbench_history;
-    docker run -it \
+    docker run -t \
     ${DOCKER_IMAGE} sh -c "psql postgresql://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_BENCH} -t -c 'select count(*) from pgbench_history;'"
 done
