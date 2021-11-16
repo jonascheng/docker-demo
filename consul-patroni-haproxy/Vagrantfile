@@ -37,4 +37,9 @@ Vagrant.configure("2") do |config|
     node.vm.network "private_network", ip: "10.1.0.30", hostname: true
   end
 
+  config.vm.define "pgbench" do |node|
+    node.vm.hostname = "pgbench"
+    node.vm.network "private_network", ip: "10.1.0.40", hostname: true
+  end
+
 end
