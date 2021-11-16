@@ -22,7 +22,7 @@ Deploy a Consul datacenter, and an patroni-enabled timescaledb service. These re
 ```console
 $> vagrant ssh server1
 vagrant@server1:~$ cd /vagrant
-vagrant@server1:/vagrant$ ./up.sh
+vagrant@server1:/vagrant$ ./docker-up.sh -d
 ```
 
 ## Testing procedure
