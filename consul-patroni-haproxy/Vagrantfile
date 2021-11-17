@@ -11,6 +11,10 @@ sudo chown -R 70:70 /home/vagrant/postgresql/
 sudo chmod -R 750 /home/vagrant/postgresql/
 SCRIPT
 
+$golang = <<-SCRIPT
+sudo snap install go --classic
+SCRIPT
+
 $sshvm = <<SCRIPT
 #check for private key for vm-vm communication
 [ -f /vagrant/id_rsa ] || {
@@ -29,6 +33,9 @@ grep 'vagrant@server' ~/.ssh/authorized_keys &>/dev/null || {
 #exclude node* from host checking
 cat > ~/.ssh/config <<EOF
 Host server*
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+Host 10.1.0.*
    StrictHostKeyChecking no
    UserKnownHostsFile=/dev/null
 EOF
@@ -54,6 +61,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockercompose
   config.vm.provision "shell", inline: $pgsqlvolume
+  config.vm.provision "shell", inline: $golang
   config.vm.provision "shell", privileged: false, inline: $sshvm
 
   config.vm.provider "virtualbox" do |v|
