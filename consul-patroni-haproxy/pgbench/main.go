@@ -251,6 +251,9 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
+			// pause 5 seconds for cluster in sync
+			log.Println("pause 5 seconds for cluster in sync")
+			time.Sleep(5 * time.Second)
 		}
 	}
 }
@@ -269,6 +272,7 @@ func main() {
 	defer logFile.Close()
 
 	// Set log out put
+	log.Printf("log out put to %s\n", logFilename)
 	log.SetOutput(logFile)
 
 	// optional: log date-time, filename, and line number
