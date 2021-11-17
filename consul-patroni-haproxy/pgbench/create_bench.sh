@@ -17,4 +17,4 @@ docker run -t \
 
 # initial bench data
 docker run -t \
- ${DOCKER_IMAGE} sh -c "pgbench postgresql://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_BENCH} -i -s ${BENCH_SCALE_FACTOR}"
+ ${DOCKER_IMAGE} sh -c "pgbench postgresql://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_BENCH} -i -s ${BENCH_SCALE_FACTOR} --no-vacuum"

@@ -25,6 +25,7 @@ bootstrap:
                 max_connections: 550
                 max_locks_per_transaction: 512
                 max_worker_processes: 27
+                max_standby_streaming_delay: 30s
 
     initdb:
     - encoding: UTF8
