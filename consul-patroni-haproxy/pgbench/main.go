@@ -46,6 +46,8 @@ var CommandList = [...]RemoteCommandPair{
 	{"docker stop consul-server", "docker start consul-server"},
 	{"cd /vagrant; ./docker-restart.sh", ""},
 	{"cd /vagrant; ./docker-stop.sh", "cd /vagrant; ./docker-up.sh -d"},
+	{"sudo systemctl restart docker", ""},
+	{"sudo systemctl stop docker", "sudo systemctl start docker"},
 }
 
 func Shellout(command string) (string, string, error) {
@@ -119,6 +121,7 @@ func RemoteShellout(server string, command string) (string, string, error) {
 }
 
 func InitBench() {
+	log.Println("initial pgbench...")
 	_, _, err := Shellout("./create_bench.sh")
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
@@ -199,6 +202,7 @@ func RandomVictim() {
 }
 
 func StartCluster() {
+	log.Println("start cluster...")
 	var wg sync.WaitGroup
 	wg.Add(3)
 	for _, server := range ServerList {
@@ -210,6 +214,7 @@ func StartCluster() {
 			}
 		}(server)
 	}
+	log.Println("wait cluster start...")
 	wg.Wait()
 	// pause 30 seconds for entire cluster to start up
 	log.Println("pause 30 seconds for entire cluster to start up")
@@ -217,6 +222,8 @@ func StartCluster() {
 }
 
 func StartBench(ctx context.Context) {
+	log.Println("start bench...")
+
 	ctxChild, cancel := context.WithCancel(ctx)
 	var wg sync.WaitGroup
 

@@ -6,7 +6,7 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
-    restart: on-failure
+    restart: always
     command: [
       "consul", "agent",
       "-config-file", "/config/config.hcl",
@@ -22,7 +22,7 @@ services:
   stateless:
     image: timescale/timescaledb:1.5.1-pg11
     container_name: stateless
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - "patroni"
@@ -35,7 +35,7 @@ services:
   patroni-proxy:
     image: haproxy:lts-alpine
     container_name: patroni-proxy
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - "patroni"
@@ -55,7 +55,7 @@ services:
       dockerfile: Dockerfile
     image: patroni-proxy-template-image
     container_name: patroni-proxy-template
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - "patroni"
@@ -73,8 +73,12 @@ services:
       context: ./patroni/
       dockerfile: Dockerfile.timescale
     image: patroni-image
+    deploy:
+      resources:
+        limits:
+          memory: 100M
     container_name: patroni
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
     ports:
