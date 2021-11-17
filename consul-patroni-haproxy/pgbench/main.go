@@ -252,8 +252,8 @@ func StartBench(ctx context.Context) {
 			}()
 			wg.Wait()
 			// pause 5 seconds for cluster in sync
-			log.Println("pause 5 seconds for cluster in sync")
-			time.Sleep(5 * time.Second)
+			log.Println("pause 10 seconds for cluster in sync")
+			time.Sleep(10 * time.Second)
 		}
 	}
 }
