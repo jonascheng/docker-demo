@@ -15,6 +15,12 @@ import (
 	"time"
 
 	"golang.org/x/crypto/ssh"
+	// A Go (golang) command line and flag parser
+	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+var (
+	duration = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
 )
 
 const (
@@ -250,6 +256,9 @@ func StartBench(ctx context.Context) {
 }
 
 func main() {
+	kingpin.Version("1.0.0")
+	kingpin.Parse()
+
 	// log to custom file
 	logFilename := fmt.Sprintf("/tmp/pgbench-%d.log", time.Now().Unix())
 	// open log file
@@ -270,7 +279,7 @@ func main() {
 	InitBench()
 
 	// create context with timeout in seconds
-	timeout := time.Duration(600 * time.Second)
+	timeout := time.Duration(*duration) * time.Second
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	var wg sync.WaitGroup
 	wg.Add(1)
