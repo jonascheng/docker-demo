@@ -112,7 +112,7 @@ func RemoteShellout(server string, command string) (string, string, error) {
 	return out, errout, err
 }
 
-func CreateBench() {
+func InitBench() {
 	_, _, err := Shellout("./create_bench.sh")
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
@@ -132,7 +132,7 @@ func RunBench(ctx context.Context) {
 	}
 }
 
-func Validate() {
+func ValidateBench() {
 	var counters []int
 	for _, server := range ServerList {
 		command := fmt.Sprintf("docker run -t %s sh -c \"psql postgresql://%s:%s@%s:%s/%s -t -c 'select count(*) from pgbench_history;'\"",
@@ -168,7 +168,7 @@ func RandomSelectCommand() RemoteCommandPair {
 	return CommandList[r.Intn(len(CommandList))]
 }
 
-func Victim() {
+func RandomVictim() {
 	server := RandomSelectServer()
 	command := RandomSelectCommand()
 	log.Printf("Server %s selected to execute force command '%s'\n", server, command.force)
@@ -177,8 +177,8 @@ func Victim() {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	// pause 15 seconds
-	time.Sleep(15 * time.Second)
+	// pause 10 seconds
+	time.Sleep(10 * time.Second)
 
 	if command.recover != "" {
 		log.Printf("Server %s selected to execute recover command '%s'\n", server, command.recover)
@@ -187,8 +187,8 @@ func Victim() {
 			log.Fatalf("error: %v\n", err)
 		}
 
-		// pause another 15 seconds to recovery
-		time.Sleep(15 * time.Second)
+		// pause another 10 seconds to recovery
+		time.Sleep(10 * time.Second)
 	}
 }
 
@@ -211,9 +211,6 @@ func StartCluster() {
 }
 
 func StartBench(ctx context.Context) {
-	// validate before bench
-	Validate()
-
 	ctxChild, cancel := context.WithCancel(ctx)
 	var wg sync.WaitGroup
 
@@ -225,9 +222,12 @@ func StartBench(ctx context.Context) {
 			cancel()
 			wg.Wait()
 			// validate after bench
-			Validate()
+			ValidateBench()
 			return
 		default:
+			// validate before bench
+			ValidateBench()
+
 			// run bench
 			wg.Add(2)
 			go func() {
@@ -242,11 +242,9 @@ func StartBench(ctx context.Context) {
 				n := rand.Intn(30) // n will be between 0 and 30
 				log.Printf("Sleeping %d seconds...\n", n)
 				time.Sleep(time.Duration(n) * time.Second)
-				Victim()
+				RandomVictim()
 			}()
 			wg.Wait()
-			// validate after bench
-			Validate()
 		}
 	}
 }
@@ -269,10 +267,10 @@ func main() {
 
 	// preparation for bench playground
 	StartCluster()
-	CreateBench()
+	InitBench()
 
-	// create context with timeout in 300 seconds
-	timeout := time.Duration(300 * time.Second)
+	// create context with timeout in seconds
+	timeout := time.Duration(600 * time.Second)
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	var wg sync.WaitGroup
 	wg.Add(1)
