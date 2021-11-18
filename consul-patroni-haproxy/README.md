@@ -69,11 +69,30 @@ INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :a
 END;
 ```
 
-### Flow
+### Bench flow
 
 ![](images/pgsql-stability-benchmark.png)
 
-### Procedure
+#### What's victim command?
+
+These are commands executed randomly to simulate disaster.
+* docker restart patroni
+* docker restart consul-server
+* docker stop patroni, and start after pause
+* docker stop consul-server and start after pause
+* docker compose restart
+* docker compose stop and up after pause
+* systemctl restart docker
+* systemctl stop docker and start after pause
+
+#### How to validate?
+
+1. Only validate after "Run Bench", and wait a while to make sure database in sync
+2. Connect to each patroni service via port 5432
+3. Execute sql command "select count(*) from pgbench_history;"
+4. Expect equal count from all patroni services
+
+### Bench procedure
 
 1. Clean up docker persistent data
 
