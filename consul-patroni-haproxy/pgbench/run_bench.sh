@@ -8,7 +8,7 @@ DB_PWD=supersecret
 DB_BENCH=pgbench
 BENCH_CLIENTS=100
 BENCH_TIME_SEC=60
-BENCH_TX_RATE_PER_SEC=100
+BENCH_TX_RATE_PER_SEC=400
 
 # build docker image
 docker build -t ${DOCKER_IMAGE} .

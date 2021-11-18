@@ -14,13 +14,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/avast/retry-go/v3"
 	"golang.org/x/crypto/ssh"
+
 	// A Go (golang) command line and flag parser
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	duration = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
+	duration  = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
+	logToFile = kingpin.Flag("logfile", "Set duration in seconds.").Bool()
 )
 
 const (
@@ -146,7 +149,27 @@ func ValidateBench() {
 	for _, server := range ServerList {
 		command := fmt.Sprintf("docker run -t %s sh -c \"psql postgresql://%s:%s@%s:%s/%s -t -c 'select count(*) from pgbench_history;'\"",
 			DockerImage, DbUser, DbPwd, server, DbPort, DbBench)
-		out, _, err := Shellout(command)
+
+		var out string
+		err := retry.Do(
+			func() error {
+				var errout string
+				var err error
+				out, errout, err = Shellout(command)
+				if err != nil && len(errout) > 0 {
+					err = fmt.Errorf(errout)
+				}
+				return err
+			},
+			retry.DelayType(func(n uint, err error, config *retry.Config) time.Duration {
+				//default is backoffdelay
+				return retry.BackOffDelay(n, err, config)
+			}),
+			retry.OnRetry(func(n uint, err error) {
+				log.Printf("OnRetry '%s' #%d: %s\n", command, n, err)
+			}),
+		)
+
 		if err != nil {
 			log.Fatalf("error: %v\n", err)
 		}
@@ -186,8 +209,8 @@ func RandomVictim() {
 		log.Fatalf("error: %v\n", err)
 	}
 
-	// pause 10 seconds
-	time.Sleep(10 * time.Second)
+	// pause 15 seconds
+	time.Sleep(15 * time.Second)
 
 	if command.recover != "" {
 		log.Printf("Server %s selected to execute recover command '%s'\n", server, command.recover)
@@ -196,8 +219,8 @@ func RandomVictim() {
 			log.Fatalf("error: %v\n", err)
 		}
 
-		// pause another 10 seconds to recovery
-		time.Sleep(10 * time.Second)
+		// pause another 15 seconds to recovery
+		time.Sleep(15 * time.Second)
 	}
 }
 
@@ -223,6 +246,8 @@ func StartCluster() {
 
 func StartBench(ctx context.Context) {
 	log.Println("start bench...")
+
+	rand.Seed(time.Now().UnixNano())
 
 	ctxChild, cancel := context.WithCancel(ctx)
 	var wg sync.WaitGroup
@@ -251,14 +276,13 @@ func StartBench(ctx context.Context) {
 			go func() {
 				defer wg.Done()
 				// sleep random time within 30 seconds
-				rand.Seed(time.Now().UnixNano())
 				n := rand.Intn(30) // n will be between 0 and 30
 				log.Printf("Sleeping %d seconds...\n", n)
 				time.Sleep(time.Duration(n) * time.Second)
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 5 seconds for cluster in sync
+			// pause 10 seconds for cluster in sync
 			log.Println("pause 10 seconds for cluster in sync")
 			time.Sleep(10 * time.Second)
 		}
@@ -279,8 +303,10 @@ func main() {
 	defer logFile.Close()
 
 	// Set log out put
-	log.Printf("log out put to %s\n", logFilename)
-	log.SetOutput(logFile)
+	if *logToFile {
+		log.Printf("log out put to %s\n", logFilename)
+		log.SetOutput(logFile)
+	}
 
 	// optional: log date-time, filename, and line number
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
