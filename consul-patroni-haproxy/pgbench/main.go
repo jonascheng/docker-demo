@@ -24,6 +24,8 @@ import (
 var (
 	duration  = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
 	logToFile = kingpin.Flag("logfile", "Set duration in seconds.").Bool()
+	txRatePS  = kingpin.Flag("txrate", "Set tx rate per seconds, and reasonable ratio of txrate:memlimits=2:1").Default("400").Uint()
+	memLimits = kingpin.Flag("memlimits", "Set patroni memory limits in M.").Default("200M").String()
 )
 
 const (
@@ -42,16 +44,7 @@ type RemoteCommandPair struct {
 
 var ServerList = [...]string{"10.1.0.10", "10.1.0.20", "10.1.0.30"}
 
-var CommandList = [...]RemoteCommandPair{
-	{"docker restart patroni", ""},
-	{"docker restart consul-server", ""},
-	{"docker stop patroni", "docker start patroni"},
-	{"docker stop consul-server", "docker start consul-server"},
-	{"cd /vagrant; ./docker-restart.sh", ""},
-	{"cd /vagrant; ./docker-stop.sh", "cd /vagrant; ./docker-up.sh -d"},
-	{"sudo systemctl restart docker", ""},
-	{"sudo systemctl stop docker", "sudo systemctl start docker"},
-}
+var counterPerBench []int
 
 func Shellout(command string) (string, string, error) {
 	var stdout bytes.Buffer
@@ -59,6 +52,7 @@ func Shellout(command string) (string, string, error) {
 	cmd := exec.Command(ShellToUse, "-c", command)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	log.Printf("--- executing command of %s ---\n", command)
 	err := cmd.Run()
 
 	out := stdout.String()
@@ -109,6 +103,7 @@ func RemoteShellout(server string, command string) (string, string, error) {
 
 	session.Stdout = &stdout
 	session.Stderr = &stderr
+	log.Printf("--- executing command of %s on %s---\n", command, server)
 	if err := session.Run(command); err != nil {
 		log.Fatalf("Failed to run %s on %s: %v\n", command, server, err)
 	}
@@ -137,7 +132,7 @@ func RunBench(ctx context.Context) {
 		log.Println("got the stop channel")
 		return
 	default:
-		_, _, err := Shellout("./run_bench.sh")
+		_, _, err := Shellout(fmt.Sprintf("BENCH_TX_RATE_PER_SEC=%d ./run_bench.sh", *txRatePS))
 		if err != nil {
 			log.Printf("error: %v\n", err)
 		}
@@ -180,7 +175,16 @@ func ValidateBench() {
 		}
 	}
 	if counters[0] == counters[1] && counters[1] == counters[2] {
-		log.Println("--- validate pass ---")
+		if counters[0] > 0 {
+			counterPerBench = append(counterPerBench, counters[0])
+			// calculate average
+			total := 0
+			for _, counter := range counterPerBench {
+				total += counter
+			}
+			average := total / len(counterPerBench)
+			log.Printf("--- validate pass, and  %d tps in average ---\n", average/60)
+		}
 	} else {
 		log.Fatalf("--- validate counters %v failed ---\n", counters)
 	}
@@ -194,6 +198,17 @@ func RandomSelectServer() string {
 }
 
 func RandomSelectCommand() RemoteCommandPair {
+	var CommandList = [...]RemoteCommandPair{
+		{"docker restart patroni", ""},
+		{"docker restart consul-server", ""},
+		{"docker stop patroni", "docker start patroni"},
+		{"docker stop consul-server", "docker start consul-server"},
+		{"cd /vagrant; ./docker-restart.sh", ""},
+		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; PATRONI_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
+		{"sudo systemctl restart docker", ""},
+		{"sudo systemctl stop docker", "sudo systemctl start docker"},
+	}
+
 	// random select server
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s) // initialize local pseudorandom generator
@@ -231,7 +246,9 @@ func StartCluster() {
 	for _, server := range ServerList {
 		go func(server string) {
 			defer wg.Done()
-			_, _, err := RemoteShellout(server, "cd /vagrant; ./docker-up.sh -d")
+			_, _, err := RemoteShellout(
+				server,
+				fmt.Sprintf("cd /vagrant; ./docker-stop.sh; PATRONI_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits))
 			if err != nil {
 				log.Fatalf("error: %v\n", err)
 			}
@@ -282,9 +299,9 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 10 seconds for cluster in sync
-			log.Println("pause 10 seconds for cluster in sync")
-			time.Sleep(10 * time.Second)
+			// pause 15 seconds for cluster in sync
+			log.Println("pause 15 seconds for cluster in sync")
+			time.Sleep(15 * time.Second)
 		}
 	}
 }
