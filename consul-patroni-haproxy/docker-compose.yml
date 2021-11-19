@@ -76,7 +76,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 100M
+          memory: ${PATRONI_MEM_LIMITS}
     container_name: patroni
     restart: always
     depends_on:
