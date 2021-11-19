@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PATRONI_MEM_LIMITS=${PATRONI_MEM_LIMITS:-100M}
-
 OS="$(uname -s)"
 
 case "${OS}" in

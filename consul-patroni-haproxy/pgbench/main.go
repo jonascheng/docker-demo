@@ -207,6 +207,7 @@ func RandomSelectCommand() RemoteCommandPair {
 		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; PATRONI_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
 		{"sudo systemctl restart docker", ""},
 		{"sudo systemctl stop docker", "sudo systemctl start docker"},
+		{"docker exec -t patroni sh -c \"stress-ng --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
 	}
 
 	// random select server
@@ -311,7 +312,12 @@ func main() {
 	kingpin.Parse()
 
 	// log to custom file
-	logFilename := fmt.Sprintf("/tmp/pgbench-%d.log", time.Now().Unix())
+	logFilename := fmt.Sprintf(
+		"/tmp/pgbench-duration%d-tx%d-mem%s-%d.log",
+		*duration,
+		*txRatePS,
+		*memLimits,
+		time.Now().Unix())
 	// open log file
 	logFile, err := os.OpenFile(logFilename, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
