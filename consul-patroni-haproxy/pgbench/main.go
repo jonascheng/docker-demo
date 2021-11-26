@@ -105,7 +105,7 @@ func RemoteShellout(server string, command string) (string, string, error) {
 	session.Stderr = &stderr
 	log.Printf("--- executing command of %s on %s---\n", command, server)
 	if err := session.Run(command); err != nil {
-		log.Fatalf("Failed to run %s on %s: %v\n", command, server, err)
+		log.Printf("Failed to run %s on %s: %v\n", command, server, err)
 	}
 
 	out := stdout.String()
@@ -222,7 +222,7 @@ func RandomVictim() {
 	log.Printf("Server %s selected to execute force command '%s'\n", server, command.force)
 	_, _, err := RemoteShellout(server, command.force)
 	if err != nil {
-		log.Fatalf("error: %v\n", err)
+		log.Printf("error: %v\n", err)
 	}
 
 	// pause 15 seconds
@@ -277,6 +277,10 @@ func StartBench(ctx context.Context) {
 			// cancel child goroutine and wait them
 			cancel()
 			wg.Wait()
+			// pause 30 * txRatePS/400 seconds for cluster in sync
+			sleep := time.Duration(30**txRatePS/400) * time.Second
+			log.Printf("pause %v seconds for cluster in sync\n", sleep)
+			time.Sleep(sleep)
 			// validate after bench
 			ValidateBench()
 			return
@@ -300,9 +304,10 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 15 seconds for cluster in sync
-			log.Println("pause 15 seconds for cluster in sync")
-			time.Sleep(15 * time.Second)
+			// pause 30 * txRatePS/400 seconds for cluster in sync
+			sleep := time.Duration(30**txRatePS/400) * time.Second
+			log.Printf("pause %v seconds for cluster in sync\n", sleep)
+			time.Sleep(sleep)
 		}
 	}
 }
