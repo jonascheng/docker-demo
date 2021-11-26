@@ -249,9 +249,17 @@ func StartCluster() {
 			defer wg.Done()
 			_, _, err := RemoteShellout(
 				server,
-				fmt.Sprintf("cd /vagrant; ./docker-stop.sh; PATRONI_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits))
+				fmt.Sprintf("cd /vagrant; ./docker-stop.sh"))
+			// pause 15 seconds
+			time.Sleep(15 * time.Second)
 			if err != nil {
-				log.Fatalf("error: %v\n", err)
+				log.Printf("error: %v\n", err)
+			}
+			_, _, err = RemoteShellout(
+				server,
+				fmt.Sprintf("cd /vagrant; PATRONI_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits))
+			if err != nil {
+				log.Printf("error: %v\n", err)
 			}
 		}(server)
 	}
