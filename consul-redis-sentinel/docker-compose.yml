@@ -7,16 +7,23 @@ services:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
     restart: on-failure
-    command: [
-      "consul", "agent",
-      "-config-file", "/config/config.hcl",
-      "-bind", "${HOSTIP}",
-      "-advertise", "${HOSTIP}",
-      # with consul keygen
-      "-encrypt", "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="]
+    command:
+      [
+        "consul",
+        "agent",
+        "-config-file",
+        "/config/config.hcl",
+        "-bind",
+        "${HOSTIP}",
+        "-advertise",
+        "${HOSTIP}",
+        # with consul keygen
+        "-encrypt",
+        "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="
+      ]
     volumes:
-    - ./consul:/config
-    - /home/vagrant/consul/data:/consul/data
+      - ./consul:/config
+      - /home/vagrant/consul/data:/consul/data
     network_mode: "host"
 
   stateless:
@@ -35,6 +42,10 @@ services:
 
   redis:
     image: docker.io/bitnami/redis:5.0.4-debian-9-r40
+    deploy:
+      resources:
+        limits:
+          memory: ${REDIS_MEM_LIMITS}
     container_name: redis
     restart: on-failure
     depends_on:
@@ -87,8 +98,11 @@ services:
       - "consul-server"
       - "redis"
       - "redis-proxy-template"
+    # open up ports to bench only, this is not required in production if steateless communicates with haproxy within the same node.
+    ports:
+      - "0.0.0.0:16379:6379"
     volumes:
-    - "./haproxy:/usr/local/etc/haproxy:ro"
+      - "./haproxy:/usr/local/etc/haproxy:ro"
     networks:
       vpcbr:
         ipv4_address: 169.254.2.11
@@ -104,15 +118,16 @@ services:
       - "consul-server"
       - "redis-sentinel"
     volumes:
-    - "./haproxy:/tmp"
-    - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./haproxy:/tmp"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       CONSUL_HTTP_ADDR: http://169.254.1.1:8500
       REDIS_PASSWORD: supersecret
       REDIS_PORT_NUMBER: 6379
       REDIS_SLAVE_INGRESS_PORT_NUMBER: 6380
     command: >
-      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker kill -s HUP redis-proxy"
+      consul-template -template "/tmp/haproxy.ctmpl:/tmp/haproxy.cfg:docker
+      kill -s HUP redis-proxy"
     network_mode: "service:redis"
 
 networks:
@@ -120,5 +135,5 @@ networks:
     driver: bridge
     ipam:
       config:
-      - subnet: 169.254.0.0/16
-        gateway: 169.254.1.1
+        - subnet: 169.254.0.0/16
+          gateway: 169.254.1.1
