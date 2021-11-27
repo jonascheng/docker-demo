@@ -249,7 +249,7 @@ func StartCluster() {
 			defer wg.Done()
 			_, _, err := RemoteShellout(
 				server,
-				fmt.Sprintf("cd /vagrant; ./docker-stop.sh"))
+				fmt.Sprintf("cd /vagrant; ./docker-cleanup.sh"))
 			// pause 15 seconds
 			time.Sleep(15 * time.Second)
 			if err != nil {
