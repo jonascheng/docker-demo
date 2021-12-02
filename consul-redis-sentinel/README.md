@@ -66,7 +66,7 @@ These are commands executed randomly to simulate disaster.
 #### How to validate?
 
 1. Only validate after "Run Bench", and wait a while to make sure database in sync
-2. Connect to each patroni service via port 6379
+2. Connect to each redis service via port 6379
 3. Execute command to check key counts
 4. Expect equal count from all redis services
 

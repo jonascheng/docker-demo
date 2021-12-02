@@ -41,7 +41,10 @@ services:
         ipv4_address: 169.254.2.12
 
   redis:
-    image: docker.io/bitnami/redis:5.0.4-debian-9-r40
+    build:
+      context: ./redis/
+      dockerfile: Dockerfile
+    image: redis-image
     deploy:
       resources:
         limits:
