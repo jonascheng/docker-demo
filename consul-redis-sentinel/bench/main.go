@@ -317,7 +317,7 @@ func main() {
 
 	// log to custom file
 	logFilename := fmt.Sprintf(
-		"/tmp/pgbench-duration%d-req%d-mem%s-%d.log",
+		"/tmp/bench-duration%d-req%d-mem%s-%d.log",
 		*duration,
 		*requests,
 		*memLimits,
