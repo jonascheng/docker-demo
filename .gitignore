@@ -1,3 +1,4 @@
 .vagrant/
 **/haproxy.cfg
 id_rsa**
+*.log
