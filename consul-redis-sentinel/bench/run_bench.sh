@@ -6,8 +6,13 @@ REDIS_PORT=16379
 REDIS_PWD=supersecret
 BENCH_CLIENTS=${BENCH_CLIENTS:-100}
 BENCH_REQUESTS=${BENCH_REQUESTS:-100000}
-BENCH_BYTES=${BENCH_BYTES:-100}
+BENCH_BYTES=${BENCH_BYTES:-1000}
 BENCH_KEYSPACE=${BENCH_KEYSPACE:-1000}
+
+echo ${BENCH_REQUESTS} requests
+echo ${BENCH_CLIENTS} parallel clients
+echo ${BENCH_BYTES} bytes payload
+echo ${BENCH_KEYSPACE} random keys
 
 # build docker image
 docker build -t ${DOCKER_IMAGE} .
