@@ -122,7 +122,11 @@ func RunBench(ctx context.Context) {
 		log.Println("got the stop channel")
 		return
 	default:
-		_, _, err := Shellout(fmt.Sprintf("BENCH_REQUESTS=%d ./run_bench.sh", *requests))
+		// randomize keyspace
+		rand.Seed(time.Now().UnixNano())
+		max, _ := strconv.Atoi(strings.TrimSuffix(*memLimits, "M"))
+		keyspace := 1000 * (1 + rand.Intn(max-1))
+		_, _, err := Shellout(fmt.Sprintf("BENCH_REQUESTS=%d BENCH_KEYSPACE=%d ./run_bench.sh", *requests, keyspace))
 		if err != nil {
 			log.Printf("error: %v\n", err)
 		}
@@ -276,8 +280,8 @@ func StartBench(ctx context.Context) {
 			// cancel child goroutine and wait them
 			cancel()
 			wg.Wait()
-			// pause 5 * requests/100000 seconds for cluster in sync
-			sleep := time.Duration(5**requests/100000) * time.Second
+			// pause 30 * requests/100000 seconds for cluster in sync
+			sleep := time.Duration(30**requests/100000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 			// validate after bench
@@ -303,8 +307,8 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 5 * 100000/100000 seconds for cluster in sync
-			sleep := time.Duration(5**requests/100000) * time.Second
+			// pause 30 * 100000/100000 seconds for cluster in sync
+			sleep := time.Duration(30**requests/100000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 		}
