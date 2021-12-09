@@ -6,7 +6,7 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
-    restart: on-failure
+    restart: always
     command:
       [
         "consul",
@@ -29,7 +29,7 @@ services:
   stateless:
     image: docker.io/bitnami/redis:5.0.4-debian-9-r40
     container_name: stateless
-    restart: on-failure
+    restart: always
     depends_on:
       - consul-server
       - redis
@@ -50,7 +50,7 @@ services:
         limits:
           memory: ${REDIS_MEM_LIMITS}
     container_name: redis
-    restart: on-failure
+    restart: always
     depends_on:
       - consul-server
     ports:
@@ -72,7 +72,7 @@ services:
   redis-sentinel:
     image: docker.io/bitnami/redis-sentinel:5.0.4-debian-9-r39
     container_name: redis-sentinel
-    restart: on-failure
+    restart: always
     depends_on:
       - consul-server
       - redis
@@ -96,7 +96,7 @@ services:
   redis-proxy:
     image: haproxy:lts-alpine
     container_name: redis-proxy
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - "redis"
@@ -116,7 +116,7 @@ services:
       dockerfile: Dockerfile
     image: redis-proxy-template-image
     container_name: redis-proxy-template
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - "redis-sentinel"
