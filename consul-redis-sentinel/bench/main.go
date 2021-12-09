@@ -24,7 +24,7 @@ import (
 var (
 	duration  = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
 	logToFile = kingpin.Flag("logfile", "Set duration in seconds.").Bool()
-	requests  = kingpin.Flag("requests", "Set number of requests.").Default("100000").Uint()
+	requests  = kingpin.Flag("requests", "Set number of requests.").Default("10000").Uint()
 	memLimits = kingpin.Flag("memlimits", "Set redis memory limits in M.").Default("200M").String()
 )
 
@@ -280,8 +280,8 @@ func StartBench(ctx context.Context) {
 			// cancel child goroutine and wait them
 			cancel()
 			wg.Wait()
-			// pause 30 * requests/100000 seconds for cluster in sync
-			sleep := time.Duration(30**requests/100000) * time.Second
+			// pause 10 * requests/10000 seconds for cluster in sync
+			sleep := time.Duration(10**requests/10000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 			// validate after bench
@@ -307,8 +307,8 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 30 * 100000/100000 seconds for cluster in sync
-			sleep := time.Duration(30**requests/100000) * time.Second
+			// pause 10 * requests/10000 seconds for cluster in sync
+			sleep := time.Duration(10**requests/10000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 		}
