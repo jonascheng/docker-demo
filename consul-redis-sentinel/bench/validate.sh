@@ -2,7 +2,7 @@
 
 DOCKER_IMAGE=bench
 REDIS_HOST=10.1.0.10
-REDIS_PORT=16379
+REDIS_PORT=6379
 REDIS_PWD=supersecret
 
 # build docker image
