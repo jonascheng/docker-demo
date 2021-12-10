@@ -280,8 +280,8 @@ func StartBench(ctx context.Context) {
 			// cancel child goroutine and wait them
 			cancel()
 			wg.Wait()
-			// pause 10 * requests/10000 seconds for cluster in sync
-			sleep := time.Duration(10**requests/10000) * time.Second
+			// pause 60 * requests/10000 seconds for cluster in sync
+			sleep := time.Duration(60**requests/10000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 			// validate after bench
@@ -307,8 +307,8 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 10 * requests/10000 seconds for cluster in sync
-			sleep := time.Duration(10**requests/10000) * time.Second
+			// pause 60 * requests/10000 seconds for cluster in sync
+			sleep := time.Duration(60**requests/10000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 		}
