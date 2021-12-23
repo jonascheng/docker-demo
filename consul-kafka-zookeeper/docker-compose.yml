@@ -36,6 +36,10 @@ services:
 
   kafka:
     image: docker.io/bitnami/kafka:2.5.0-debian-10-r112
+    deploy:
+      resources:
+        limits:
+          memory: ${KAFKA_MEM_LIMITS}
     container_name: kafka
     restart: on-failure
     ports:

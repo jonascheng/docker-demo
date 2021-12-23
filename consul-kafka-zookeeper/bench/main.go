@@ -199,7 +199,7 @@ func RandomSelectCommand() RemoteCommandPair {
 		{"docker stop redis-sentinel", "docker start redis-sentinel"},
 		{"docker stop consul-server", "docker start consul-server"},
 		{"cd /vagrant; ./docker-restart.sh", ""},
-		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; REDIS_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
+		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; KAFKA_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
 		{"sudo systemctl restart docker", ""},
 		{"sudo systemctl stop docker", "sudo systemctl start docker"},
 		{"docker exec -t redis sh -c \"stress --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
@@ -252,7 +252,7 @@ func StartCluster() {
 			}
 			_, _, err = RemoteShellout(
 				server,
-				fmt.Sprintf("cd /vagrant; REDIS_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits))
+				fmt.Sprintf("cd /vagrant; KAFKA_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits))
 			if err != nil {
 				log.Printf("error: %v\n", err)
 			}

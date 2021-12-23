@@ -1,9 +1,9 @@
 #/bin/bash
 
 DOCKER_IMAGE=bench
-REDIS_HOST=10.1.0.10
-REDIS_PORT=16379
-REDIS_PWD=supersecret
+KAFKA_HOST=10.1.0.10
+KAFKA_PORT=19092
+KAFKA_PWD=supersecret
 BENCH_CLIENTS=${BENCH_CLIENTS:-100}
 BENCH_REQUESTS=${BENCH_REQUESTS:-10000}
 BENCH_BYTES=${BENCH_BYTES:-1000}
@@ -27,4 +27,4 @@ docker build -t ${DOCKER_IMAGE} .
 #   is executed. Default tests use this to hit random keys in the
 #   specified range.
 docker run -t \
- ${DOCKER_IMAGE} sh -c "redis-benchmark -h ${REDIS_HOST} -p ${REDIS_PORT} -a ${REDIS_PWD} -c ${BENCH_CLIENTS} -n ${BENCH_REQUESTS} -d ${BENCH_BYTES} -r ${BENCH_KEYSPACE}"
+ ${DOCKER_IMAGE} sh -c "redis-benchmark -h ${KAFKA_HOST} -p ${KAFKA_PORT} -a ${KAFKA_PWD} -c ${BENCH_CLIENTS} -n ${BENCH_REQUESTS} -d ${BENCH_BYTES} -r ${BENCH_KEYSPACE}"
