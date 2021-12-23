@@ -4,11 +4,57 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
+$golang = <<-SCRIPT
+sudo snap install go --classic
+SCRIPT
+
+$sshvm = <<SCRIPT
+#check for private key for vm-vm communication
+[ -f /vagrant/id_rsa ] || {
+  ssh-keygen -t rsa -f /vagrant/id_rsa -q -N ''
+}
+#deploy key
+[ -f /home/vagrant/.ssh/id_rsa ] || {
+    cp /vagrant/id_rsa /home/vagrant/.ssh/id_rsa
+    chmod 0600 /home/vagrant/.ssh/id_rsa
+}
+#allow ssh passwordless
+grep 'vagrant@server' ~/.ssh/authorized_keys &>/dev/null || {
+  cat /vagrant/id_rsa.pub >> ~/.ssh/authorized_keys
+  chmod 0600 ~/.ssh/authorized_keys
+}
+#exclude node* from host checking
+cat > ~/.ssh/config <<EOF
+Host server*
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+Host 10.1.0.*
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+EOF
+#populate /etc/hosts
+grep 10.1.0.10 /etc/hosts &>/dev/null || {
+    echo 10.1.0.10 server1 | sudo tee -a /etc/hosts &>/dev/null
+}
+grep 10.1.0.20 /etc/hosts &>/dev/null || {
+    echo 10.1.0.20 server2 | sudo tee -a /etc/hosts &>/dev/null
+}
+grep 10.1.0.30 /etc/hosts &>/dev/null || {
+    echo 10.1.0.30 server3 | sudo tee -a /etc/hosts &>/dev/null
+}
+grep 10.1.0.40 /etc/hosts &>/dev/null || {
+    echo 10.1.0.40 server-bench | sudo tee -a /etc/hosts &>/dev/null
+}
+#end script
+SCRIPT
+
 Vagrant.configure("2") do |config|
   config.vm.box = "boxomatic/ubuntu-18.04"
   config.vm.box_version = "20210723.0.1"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockercompose
+  config.vm.provision "shell", inline: $golang
+  config.vm.provision "shell", privileged: false, inline: $sshvm
 
   config.vm.provider "virtualbox" do |v|
     v.memory = 1024
@@ -27,6 +73,11 @@ Vagrant.configure("2") do |config|
   config.vm.define "server3" do |node|
     node.vm.hostname = "server3"
     node.vm.network "private_network", ip: "10.1.0.30", hostname: true
+  end
+
+  config.vm.define "server-bench" do |node|
+    node.vm.hostname = "server-bench"
+    node.vm.network "private_network", ip: "10.1.0.40", hostname: true
   end
 
 end
