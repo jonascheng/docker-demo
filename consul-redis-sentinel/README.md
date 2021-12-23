@@ -47,7 +47,7 @@ vagrant@server1:/vagrant$ docker exec -it stateless sh
 
 ### Bench flow
 
-![](images/tbd)
+![](images/redis-stability-benchmark.png)
 
 #### What's victim command?
 
