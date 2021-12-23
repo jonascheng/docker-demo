@@ -114,6 +114,9 @@ services:
       - kafka
       - kafka-proxy-template
       - zookeeper
+    # open up ports to bench only, this is not required in production if steateless communicates with haproxy within the same node.
+    ports:
+      - "0.0.0.0:19092:9092"
     volumes:
     - "./haproxy:/usr/local/etc/haproxy:ro"
     networks:

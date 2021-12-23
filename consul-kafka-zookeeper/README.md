@@ -24,7 +24,7 @@ To prevent from confusing from redis cluster, avoid to use term - redis cluster.
 ```console
 $> vagrant ssh server1
 vagrant@server1:~$ cd /vagrant
-vagrant@server1:/vagrant$ ./up.sh
+vagrant@server1:/vagrant$ ./docker-up.sh
 ```
 
 ## Testing procedure
@@ -58,6 +58,66 @@ vagrant@server3:/vagrant$ docker exec -it stateless sh -c "kafka-console-consume
     --from-beginning \
     --consumer.config /tmp/kafka-client/client.properties"
 ```
+
+### Bench flow
+
+![](images/tbd.png)
+
+#### What's victim command?
+
+These are commands executed randomly to simulate disaster.
+* docker restart kafka
+* docker restart zookeeper
+* docker restart consul-server
+* docker stop kafka, and start after pause
+* docker stop zookeeper, and start after pause
+* docker stop consul-server and start after pause
+* docker compose restart
+* docker compose stop and up after pause
+* systemctl restart docker
+* systemctl stop docker and start after pause
+
+#### How to validate?
+
+1. Only validate after "Run Bench", and wait a while to make sure database in sync
+2. Connect to each kafka service via port 9092
+3. Execute command to check key counts
+4. Expect equal count from all kafka services
+
+### Bench procedure
+
+1. Clean up docker persistent data
+
+   Execute the following commands in first three servers
+
+```console
+$> vagrant ssh server1
+vagrant@server1:~$ cd /vagrant
+vagrant@server1:~$ ./docker-cleanup.sh
+```
+
+2. Build docker images for the cluster
+
+   Execute the following commands in first three servers
+
+```console
+# login your docker account if you encounter any throttle problem
+$> vagrant ssh server1
+vagrant@server1:~$ cd /vagrant
+vagrant@server1:~$ ./docker-build.sh
+```
+
+3. Start benchmark stability
+
+  Execute the following commands in server-bench
+
+```console
+$> vagrant ssh server-bench
+vagrant@server1:~$ cd /vagrant/bench
+vagrant@server1:~$ go run main.go
+```
+
+4. Once the program stop it will be log in `/tmp/bench-*.log`, please check if any exception or error in log.
 
 # References
 
