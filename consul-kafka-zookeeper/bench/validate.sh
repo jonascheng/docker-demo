@@ -2,29 +2,21 @@
 
 DOCKER_IMAGE=docker.io/bitnami/kafka:2.5.0-debian-10-r112
 KAFKA_HOST=10.1.0.10
-KAFKA_PORT=19092
-KAFKA_BENCH=my-topic
+KAFKA_PORT=9092
+KAFKA_BENCH=${KAFKA_BENCH:-"my-topic"}
 
-BENCH_RECORDS=${BENCH_RECORDS:-100000}
-BENCH_BYTES=${BENCH_BYTES:-1000}
+# 查询结果如下图所示，从图中可以看到，Kafka将所有Replica均匀分布到了整个集群，并且Leader也均匀分布
+for KAFKA_HOST in 10.1.0.10 10.1.0.20 10.1.0.30
+do
+    echo ${DB_HOST}: describe topic ${KAFKA_BENCH}
+    docker run -v `pwd`/../:/opt/bitnami/kafka/conf -t \
+    ${DOCKER_IMAGE} sh -c "kafka-topics.sh --describe --bootstrap-server ${KAFKA_HOST}:${KAFKA_PORT} --topic ${KAFKA_BENCH} --command-config /opt/bitnami/kafka/conf/kafka-client/client.properties"
+done
 
-echo ${BENCH_RECORDS} records
-echo ${BENCH_BYTES} bytes payload
-
-# #####
-# for KAFKA_HOST in 10.1.0.10 10.1.0.20 10.1.0.30
-# do
-#     echo ${KAFKA_HOST}: DBSIZE
-#     # connect database
-#     docker run -it \
-#     ${DOCKER_IMAGE} sh -c "redis-cli --no-auth-warning -u redis://${KAFKA_PWD}@${KAFKA_HOST}:${KAFKA_PORT}/0 DBSIZE"
-# done
-
-# --broker-list <String: hostname:        REQUIRED: The list of hostname and
-#   port,...,hostname:port>                 port of the server to connect to.
-# --topic-white-list <String: Java regex  White list of topics to verify replica
-#   (String)>                               consistency. Defaults to all topics.
-#                                           (default: .*)
-
-docker run -v `pwd`/../:/opt/bitnami/kafka/conf -it \
- ${DOCKER_IMAGE} sh -c "kafka-replica-verification.sh --broker-list 10.1.0.10:9092,10.1.0.20:9092,10.1.0.30:9092 --topic-white-list ${KAFKA_BENCH} --consumer.config /opt/bitnami/kafka/conf/kafka-client/client.properties"
+# validate count of messages in a Kafka Topic
+for KAFKA_HOST in 10.1.0.10 10.1.0.20 10.1.0.30
+do
+    echo ${DB_HOST}: describe all groups
+    docker run -v `pwd`/../:/opt/bitnami/kafka/conf -t \
+    ${DOCKER_IMAGE} sh -c "kafka-run-class.sh kafka.admin.ConsumerGroupCommand --describe --all-groups --bootstrap-server ${KAFKA_HOST}:${KAFKA_PORT} --command-config /opt/bitnami/kafka/conf/kafka-client/client.properties"
+done
