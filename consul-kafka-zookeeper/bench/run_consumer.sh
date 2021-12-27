@@ -23,5 +23,5 @@ echo ${BENCH_BYTES} bytes payload
 # --topic <String: topic>                  REQUIRED: The topic to consume from.
 # --print-metrics                          Print out the metrics.
 
-docker run -v `pwd`/../:/opt/bitnami/kafka/conf -it \
+docker run -v `pwd`/../:/opt/bitnami/kafka/conf -t \
  ${DOCKER_IMAGE} sh -c "kafka-consumer-perf-test.sh --bootstrap-server=${KAFKA_HOST}:${KAFKA_PORT} --topic ${KAFKA_BENCH} --group perf-consumer-52325 --messages ${BENCH_RECORDS} --threads=10 --consumer.config /opt/bitnami/kafka/conf/kafka-client/client.properties"

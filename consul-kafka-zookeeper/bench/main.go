@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,15 +23,14 @@ import (
 var (
 	duration  = kingpin.Flag("duration", "Set duration in seconds.").Default("300").Short('d').Uint()
 	logToFile = kingpin.Flag("logfile", "Set duration in seconds.").Bool()
-	requests  = kingpin.Flag("requests", "Set number of requests.").Default("10000").Uint()
+	records   = kingpin.Flag("records", "Set number of records.").Default("100000").Uint()
 	memLimits = kingpin.Flag("memlimits", "Set redis memory limits in M.").Default("200M").String()
 )
 
 const (
 	ShellToUse  = "bash"
-	DockerImage = "bench"
-	RedisPort   = "6379"
-	RedisPwd    = "supersecret"
+	DockerImage = "docker.io/bitnami/kafka:2.5.0-debian-10-r112"
+	KafkaPort   = "9092"
 )
 
 type RemoteCommandPair struct {
@@ -116,28 +114,37 @@ func RemoteShellout(server string, command string) (string, string, error) {
 	return out, errout, err
 }
 
+func InitBench() {
+	log.Println("initial pgbench...")
+	_, _, err := Shellout("./create_bench.sh")
+	if err != nil {
+		log.Fatalf("error: %v\n", err)
+	}
+}
+
 func RunBench(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 		log.Println("got the stop channel")
 		return
 	default:
-		// randomize keyspace
-		rand.Seed(time.Now().UnixNano())
-		max, _ := strconv.Atoi(strings.TrimSuffix(*memLimits, "M"))
-		keyspace := 1000 * (1 + rand.Intn(max-1))
-		_, _, err := Shellout(fmt.Sprintf("BENCH_REQUESTS=%d BENCH_KEYSPACE=%d ./run_bench.sh", *requests, keyspace))
+		// producer
+		_, _, err := Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_producer.sh", *records))
+		if err != nil {
+			log.Printf("error: %v\n", err)
+		}
+		// consumer
+		_, _, err = Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_consumer.sh", *records))
 		if err != nil {
 			log.Printf("error: %v\n", err)
 		}
 	}
 }
 
-func ValidateBench() {
-	var counters []int
+func ValidateReplicas() {
 	for _, server := range ServerList {
-		command := fmt.Sprintf("docker run -t %s sh -c \"redis-cli --no-auth-warning -u redis://%s@%s:%s/0 DBSIZE\"",
-			DockerImage, RedisPwd, server, RedisPort)
+		command := fmt.Sprintf("docker run -v /vagrant/:/opt/bitnami/kafka/conf -t %s sh -c \"kafka-topics.sh --describe --bootstrap-server %s:%s --topic my-topic --command-config /opt/bitnami/kafka/conf/kafka-client/client.properties\"",
+			DockerImage, server, KafkaPort)
 		var out string
 		err := retry.Do(
 			func() error {
@@ -161,26 +168,70 @@ func ValidateBench() {
 		if err != nil {
 			log.Fatalf("error: %v\n", err)
 		}
-		intVar, err := strconv.Atoi(strings.Trim(out, "(integr) \r\n"))
-		counters = append(counters, intVar)
+
+		lines := strings.Split(out, "\n")
+		for _, str := range lines {
+			if strings.Contains(str, "Topic: my-topic") && !strings.Contains(str, "ReplicationFactor") {
+				columns := strings.Fields(str)
+				log.Print(columns)
+				replicas := columns[7]
+				isr := columns[9]
+				if replicas != isr {
+					log.Fatalf("--- validate replicas/isr (%s, %s) failed ---\n", replicas, isr)
+				}
+			}
+		}
+	}
+	log.Printf("--- validate pass ---\n")
+}
+
+func ValidateMsgCount() {
+	for _, server := range ServerList {
+		command := fmt.Sprintf("docker run -v /vagrant/:/opt/bitnami/kafka/conf -t %s sh -c \"kafka-run-class.sh kafka.admin.ConsumerGroupCommand --describe --all-groups --bootstrap-server %s:%s --command-config /opt/bitnami/kafka/conf/kafka-client/client.properties\"",
+			DockerImage, server, KafkaPort)
+		var out string
+		err := retry.Do(
+			func() error {
+				var errout string
+				var err error
+				out, errout, err = Shellout(command)
+				if err != nil && len(errout) > 0 {
+					err = fmt.Errorf(errout)
+				}
+				return err
+			},
+			retry.DelayType(func(n uint, err error, config *retry.Config) time.Duration {
+				//default is backoffdelay
+				return retry.BackOffDelay(n, err, config)
+			}),
+			retry.OnRetry(func(n uint, err error) {
+				log.Printf("OnRetry '%s' #%d: %s\n", command, n, err)
+			}),
+		)
+
 		if err != nil {
 			log.Fatalf("error: %v\n", err)
 		}
-	}
-	if counters[0] == counters[1] && counters[1] == counters[2] {
-		if counters[0] > 0 {
-			counterPerBench = append(counterPerBench, counters[0])
-			// calculate average
-			total := 0
-			for _, counter := range counterPerBench {
-				total += counter
+
+		lines := strings.Split(out, "\n")
+		for _, str := range lines {
+			if strings.Contains(str, "perf-consumer-52325 my-topic") {
+				columns := strings.Fields(str)
+				log.Print(columns)
+				currentOffset := columns[3]
+				logEndOffset := columns[4]
+				if currentOffset != logEndOffset {
+					log.Fatalf("--- validate CURRENT-OFFSET/LOG-END-OFFSET (%s, %s) failed ---\n", currentOffset, logEndOffset)
+				}
 			}
-			average := total / len(counterPerBench)
-			log.Printf("--- validate pass, and %d tps in average ---\n", average/60)
 		}
-	} else {
-		log.Fatalf("--- validate counters %v failed ---\n", counters)
 	}
+	log.Printf("--- validate pass ---\n")
+}
+
+func ValidateBench() {
+	ValidateReplicas()
+	ValidateMsgCount()
 }
 
 func RandomSelectServer() string {
@@ -192,17 +243,17 @@ func RandomSelectServer() string {
 
 func RandomSelectCommand() RemoteCommandPair {
 	var CommandList = [...]RemoteCommandPair{
-		{"docker restart redis", ""},
-		{"docker restart redis-sentinel", ""},
+		{"docker restart kafka", ""},
+		{"docker restart zookeeper", ""},
 		{"docker restart consul-server", ""},
-		{"docker stop redis", "docker start redis"},
-		{"docker stop redis-sentinel", "docker start redis-sentinel"},
+		{"docker stop kafka", "docker start kafka"},
+		{"docker stop zookeeper", "docker start zookeeper"},
 		{"docker stop consul-server", "docker start consul-server"},
 		{"cd /vagrant; ./docker-restart.sh", ""},
 		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; KAFKA_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
 		{"sudo systemctl restart docker", ""},
 		{"sudo systemctl stop docker", "sudo systemctl start docker"},
-		{"docker exec -t redis sh -c \"stress --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
+		// {"docker exec -t kafka sh -c \"stress --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
 	}
 
 	// random select server
@@ -280,8 +331,8 @@ func StartBench(ctx context.Context) {
 			// cancel child goroutine and wait them
 			cancel()
 			wg.Wait()
-			// pause 60 * requests/10000 seconds for cluster in sync
-			sleep := time.Duration(60**requests/10000) * time.Second
+			// pause 30 * records/100000 seconds for cluster in sync
+			sleep := time.Duration(30**records/100000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 			// validate after bench
@@ -307,8 +358,8 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
-			// pause 60 * requests/10000 seconds for cluster in sync
-			sleep := time.Duration(60**requests/10000) * time.Second
+			// pause 30 * records/100000 seconds for cluster in sync
+			sleep := time.Duration(30**records/100000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
 			time.Sleep(sleep)
 		}
@@ -323,7 +374,7 @@ func main() {
 	logFilename := fmt.Sprintf(
 		"/tmp/bench-duration%d-req%d-mem%s-%d.log",
 		*duration,
-		*requests,
+		*records,
 		*memLimits,
 		time.Now().Unix())
 	// open log file
@@ -344,6 +395,7 @@ func main() {
 
 	// preparation for bench playground
 	StartCluster()
+	InitBench()
 
 	// create context with timeout in seconds
 	timeout := time.Duration(*duration) * time.Second
