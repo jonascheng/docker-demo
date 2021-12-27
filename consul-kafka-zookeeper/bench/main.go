@@ -122,6 +122,20 @@ func InitBench() {
 	}
 }
 
+func RunProducer() {
+	_, _, err := Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_producer.sh", *records))
+	if err != nil {
+		log.Printf("error: %v\n", err)
+	}
+}
+
+func RunConsumer() {
+	_, _, err := Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_consumer.sh", *records))
+	if err != nil {
+		log.Printf("error: %v\n", err)
+	}
+}
+
 func RunBench(ctx context.Context) {
 	select {
 	case <-ctx.Done():
@@ -129,15 +143,9 @@ func RunBench(ctx context.Context) {
 		return
 	default:
 		// producer
-		_, _, err := Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_producer.sh", *records))
-		if err != nil {
-			log.Printf("error: %v\n", err)
-		}
+		RunProducer()
 		// consumer
-		_, _, err = Shellout(fmt.Sprintf("BENCH_RECORDS=%d ./run_consumer.sh", *records))
-		if err != nil {
-			log.Printf("error: %v\n", err)
-		}
+		RunConsumer()
 	}
 }
 
@@ -358,6 +366,8 @@ func StartBench(ctx context.Context) {
 				RandomVictim()
 			}()
 			wg.Wait()
+			// run consumer to catch up message counts
+			RunConsumer()
 			// pause 30 * records/100000 seconds for cluster in sync
 			sleep := time.Duration(30**records/100000) * time.Second
 			log.Printf("pause %v seconds for cluster in sync\n", sleep)
