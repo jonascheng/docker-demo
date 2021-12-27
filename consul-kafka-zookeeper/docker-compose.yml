@@ -6,7 +6,7 @@ services:
   consul-server:
     image: hashicorp/consul:1.8.10
     container_name: consul-server
-    restart: on-failure
+    restart: always
     command: [
       "consul", "agent",
       "-config-file", "/config/config.hcl",
@@ -22,7 +22,7 @@ services:
   stateless:
     image: docker.io/bitnami/kafka:2.5.0-debian-10-r112
     container_name: stateless
-    restart: on-failure
+    restart: always
     depends_on:
       - consul-server
       - kafka
@@ -35,13 +35,16 @@ services:
         ipv4_address: 169.254.2.12
 
   kafka:
-    image: docker.io/bitnami/kafka:2.5.0-debian-10-r112
+    build:
+      context: ./kafka/
+      dockerfile: Dockerfile
+    image: kafka-image
     deploy:
       resources:
         limits:
           memory: ${KAFKA_MEM_LIMITS}
     container_name: kafka
-    restart: on-failure
+    restart: always
     ports:
       - "0.0.0.0:9092:9092"
       - "0.0.0.0:9093:9093"
@@ -85,7 +88,7 @@ services:
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.4.14-debian-9-r33
     container_name: zookeeper
-    restart: on-failure
+    restart: always
     ports:
       # - "2181:2181"
       # quorumPort
@@ -112,7 +115,7 @@ services:
   kafka-proxy:
     image: haproxy:lts-alpine
     container_name: kafka-proxy
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - kafka
@@ -133,7 +136,7 @@ services:
       dockerfile: Dockerfile
     image: kafka-proxy-template-image
     container_name: kafka-proxy-template
-    restart: on-failure
+    restart: always
     depends_on:
       - "consul-server"
       - kafka

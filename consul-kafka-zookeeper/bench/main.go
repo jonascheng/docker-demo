@@ -176,7 +176,7 @@ func ValidateReplicas() {
 				log.Print(columns)
 				replicas := columns[7]
 				isr := columns[9]
-				if replicas != isr {
+				if len(strings.Split(replicas, ",")) != len(strings.Split(isr, ",")) {
 					log.Fatalf("--- validate replicas/isr (%s, %s) failed ---\n", replicas, isr)
 				}
 			}
@@ -253,7 +253,7 @@ func RandomSelectCommand() RemoteCommandPair {
 		{"cd /vagrant; ./docker-stop.sh", fmt.Sprintf("cd /vagrant; KAFKA_MEM_LIMITS=%s ./docker-up.sh -d", *memLimits)},
 		{"sudo systemctl restart docker", ""},
 		{"sudo systemctl stop docker", "sudo systemctl start docker"},
-		// {"docker exec -t kafka sh -c \"stress --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
+		{"docker exec -t kafka sh -c \"stress --cpu 2 --io 2 --vm 2 --vm-bytes 1G --timeout 15s\"", ""},
 	}
 
 	// random select server
