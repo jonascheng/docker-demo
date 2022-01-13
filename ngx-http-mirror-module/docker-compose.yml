@@ -1,0 +1,54 @@
+---
+version: "3.7"
+
+services:
+
+  nginx-1:
+    image: nginx:1.15.8-alpine
+    container_name: nginx-1
+    ports:
+      - '0.0.0.0:8081:80'
+    networks:
+      vnet1:
+        ipv4_address: 169.254.1.10
+
+  hello-app-1:
+    image: phozzy/hello-app
+    container_name: hello-app-1
+    ports:
+      - '0.0.0.0:8083:8080'
+    networks:
+      vnet1:
+        ipv4_address: 169.254.1.11
+
+  nginx-2:
+    image: nginx:1.15.8-alpine
+    container_name: nginx-2
+    ports:
+      - '0.0.0.0:8082:80'
+    networks:
+      vnet2:
+        ipv4_address: 169.254.2.10
+
+  hello-app-2:
+    image: phozzy/hello-app
+    container_name: hello-app-2
+    ports:
+      - '0.0.0.0:8084:8080'
+    networks:
+      vnet2:
+        ipv4_address: 169.254.2.11
+
+networks:
+  vnet1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 169.254.1.0/24
+          gateway: 169.254.1.1
+  vnet2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 169.254.2.0/24
+          gateway: 169.254.2.1
