@@ -6,6 +6,8 @@ services:
   nginx-1:
     image: nginx:1.15.8-alpine
     container_name: nginx-1
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - '0.0.0.0:8081:80'
     networks:
@@ -15,6 +17,7 @@ services:
   hello-app-1:
     image: phozzy/hello-app
     container_name: hello-app-1
+    hostname: hello-app
     ports:
       - '0.0.0.0:8083:8080'
     networks:
@@ -24,6 +27,8 @@ services:
   nginx-2:
     image: nginx:1.15.8-alpine
     container_name: nginx-2
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - '0.0.0.0:8082:80'
     networks:
@@ -33,6 +38,7 @@ services:
   hello-app-2:
     image: phozzy/hello-app
     container_name: hello-app-2
+    hostname: hello-app
     ports:
       - '0.0.0.0:8084:8080'
     networks:
