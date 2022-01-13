@@ -45,6 +45,27 @@ services:
       vnet2:
         ipv4_address: 169.254.2.11
 
+  nginx-3:
+    image: nginx:1.15.8-alpine
+    container_name: nginx-3
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - '0.0.0.0:8083:80'
+    networks:
+      vnet3:
+        ipv4_address: 169.254.3.10
+
+  echo-3:
+    image: mendhak/http-https-echo:23
+    container_name: echo-3
+    hostname: echo.system.acus
+    expose:
+      - '8080'
+    networks:
+      vnet3:
+        ipv4_address: 169.254.3.11
+
 networks:
   vnet1:
     driver: bridge
@@ -58,3 +79,9 @@ networks:
       config:
         - subnet: 169.254.2.0/24
           gateway: 169.254.2.1
+  vnet3:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 169.254.3.0/24
+          gateway: 169.254.3.1
