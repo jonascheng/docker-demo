@@ -8,8 +8,9 @@ services:
     container_name: nginx-1
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert:/cert:ro
     ports:
-      - '0.0.0.0:8081:80'
+      - '0.0.0.0:8081:443'
     networks:
       vnet1:
         ipv4_address: 169.254.1.10
@@ -29,8 +30,9 @@ services:
     container_name: nginx-2
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert:/cert:ro
     ports:
-      - '0.0.0.0:8082:80'
+      - '0.0.0.0:8082:443'
     networks:
       vnet2:
         ipv4_address: 169.254.2.10
@@ -50,8 +52,9 @@ services:
     container_name: nginx-3
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert:/cert:ro
     ports:
-      - '0.0.0.0:8083:80'
+      - '0.0.0.0:8083:443'
     networks:
       vnet3:
         ipv4_address: 169.254.3.10
