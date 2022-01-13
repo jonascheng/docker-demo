@@ -14,12 +14,12 @@ services:
       vnet1:
         ipv4_address: 169.254.1.10
 
-  hello-app-1:
-    image: phozzy/hello-app
-    container_name: hello-app-1
-    hostname: hello-app
-    ports:
-      - '0.0.0.0:8083:8080'
+  echo-1:
+    image: mendhak/http-https-echo:23
+    container_name: echo-1
+    hostname: echo.system.acus
+    expose:
+      - '8080'
     networks:
       vnet1:
         ipv4_address: 169.254.1.11
@@ -35,12 +35,12 @@ services:
       vnet2:
         ipv4_address: 169.254.2.10
 
-  hello-app-2:
-    image: phozzy/hello-app
-    container_name: hello-app-2
-    hostname: hello-app
-    ports:
-      - '0.0.0.0:8084:8080'
+  echo-2:
+    image: mendhak/http-https-echo:23
+    container_name: echo-2
+    hostname: echo.system.acus
+    expose:
+      - '8080'
     networks:
       vnet2:
         ipv4_address: 169.254.2.11
