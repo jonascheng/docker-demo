@@ -29,6 +29,14 @@ echo-3   | Listening on ports 8080 and 8443
 - https://localhost:8082/
 - https://localhost:8083/
 
+or run with cURL command
+
+```console
+curl --insecure https://localhost:8081/
+curl --insecure https://localhost:8082/
+curl --insecure https://localhost:8083/
+```
+
 7. You may read the following example messages to comprehen how one request is mirrored to the other nginx servers.
 
 ```console
@@ -39,4 +47,18 @@ nginx-3  | 169.254.3.1 - - [13/Jan/2022:09:52:26 +0000] "GET / HTTP/1.0" "200" 1
 ...
 nginx-1  | 169.254.1.1 - - [13/Jan/2022:09:52:26 +0000] "GET / HTTP/1.0" "200" 1270 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36 Edg/97.0.1072.55" "169.254.2.1" "-" 0.018 1518 808
 ...
+```
+
+9. Upload a file.
+
+```console
+# replace test.html to the file you'd like to upload to
+curl --insecure -F "originalFile=@test.html" https://localhost:8081/uploadFile
+```
+
+10. Verify if the file is mirrored to the others.
+
+```console
+docker exec -it upload-3 sh
+ls data/
 ```

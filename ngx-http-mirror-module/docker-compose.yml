@@ -25,6 +25,19 @@ services:
       vnet1:
         ipv4_address: 169.254.1.11
 
+  upload-1:
+    build:
+      context: ./upload/
+      dockerfile: Dockerfile
+    image: upload-image
+    container_name: upload-1
+    hostname: upload.system.acus
+    ports:
+      - '8083'
+    networks:
+      vnet1:
+        ipv4_address: 169.254.1.12
+
   nginx-2:
     image: nginx:1.15.8-alpine
     container_name: nginx-2
@@ -47,6 +60,19 @@ services:
       vnet2:
         ipv4_address: 169.254.2.11
 
+  upload-2:
+    build:
+      context: ./upload/
+      dockerfile: Dockerfile
+    image: upload-image
+    container_name: upload-2
+    hostname: upload.system.acus
+    ports:
+      - '8083'
+    networks:
+      vnet2:
+        ipv4_address: 169.254.2.12
+
   nginx-3:
     image: nginx:1.15.8-alpine
     container_name: nginx-3
@@ -68,6 +94,19 @@ services:
     networks:
       vnet3:
         ipv4_address: 169.254.3.11
+
+  upload-3:
+    build:
+      context: ./upload/
+      dockerfile: Dockerfile
+    image: upload-image
+    container_name: upload-3
+    hostname: upload.system.acus
+    ports:
+      - '8083'
+    networks:
+      vnet3:
+        ipv4_address: 169.254.3.12
 
 networks:
   vnet1:
