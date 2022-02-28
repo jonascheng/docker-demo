@@ -41,7 +41,7 @@ command: agent --server --log-level=debug --bootstrap-expect=1 --data-dir=/dkron
 You can register JOB if you poke API from HTTP
 
 ```console
-curl http://localhost:8080/v1/jobs -XPOST -d '{
+curl http://10.1.0.10:8080/v1/jobs -XPOST -d '{
   "name": "job1",
   "schedule": "@every 10s",
   "timezone": "Europe/Berlin",
@@ -63,9 +63,9 @@ curl http://localhost:8080/v1/jobs -XPOST -d '{
 ```
 
 ```console
-curl http://localhost:8080/v1/jobs -XPOST -d '{
+curl http://10.1.0.10:8080/v1/jobs -XPOST -d '{
   "name": "job2",
-  "schedule": "@every 10m",
+  "schedule": "@every 1m",
   "timezone": "Europe/Berlin",
   "owner": "Platform Team",
   "owner_email": "platform@example.com",
