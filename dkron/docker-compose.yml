@@ -3,20 +3,45 @@ version: "3.7"
 
 services:
 
+  consul-server:
+    image: hashicorp/consul:1.8.10
+    container_name: consul-server
+    restart: always
+    command:
+      [
+        "consul",
+        "agent",
+        "-config-file",
+        "/config/config.hcl",
+        "-bind",
+        "${HOSTIP}",
+        "-advertise",
+        "${HOSTIP}",
+        # with consul keygen
+        "-encrypt",
+        "vyIt2UJcg16ULc1celZnbAUu7Wm69TeWksDNTlLZ1Z0="
+      ]
+    volumes:
+      - ./consul:/config
+      - /home/vagrant/consul/data:/consul/data
+    network_mode: "host"
+
   dkron-server:
     image: dkron/dkron
     container_name: dkron-server
+    hostname: ${HOSTNAME}
     restart: always
     # ports:
     #   - "0.0.0.0:8080:8080" # for HTTP for the API and Dashboard
     #   - "0.0.0.0:8946:8946" # for serf layer between agents
+    #   - "0.0.0.0:8946:8946/udp" # for serf layer between agents
     #   - "0.0.0.0:6868:6868" # for gRPC and raft layer comunication between agents.
     command:
       [
         "agent",
         "--config=/etc/dkron/dkron.yml",
         "--advertise-addr=${HOSTIP}",
-        "--bind-addr=${HOSTIP}",
+        # "--bind-addr=${HOSTIP}",
         "--data-dir=/dkron/data"
       ]
     volumes:

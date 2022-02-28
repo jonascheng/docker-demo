@@ -9,4 +9,6 @@ case "${OS}" in
     *)          HOSTIP=`hostname --ip-address`;;
 esac
 
-HOSTIP=${HOSTIP} docker-compose up $@
+HOSTNAME=`hostname`
+
+HOSTIP=${HOSTIP} HOSTNAME=${HOSTNAME} docker-compose up $@

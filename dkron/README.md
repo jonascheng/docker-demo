@@ -44,7 +44,7 @@ You can register JOB if you poke API from HTTP
 curl http://10.1.0.10:8080/v1/jobs -XPOST -d '{
   "name": "job1",
   "schedule": "@every 10s",
-  "timezone": "Europe/Berlin",
+  "timezone": "Asis/Taipei",
   "owner": "Platform Team",
   "owner_email": "platform@example.com",
   "disabled": false,
@@ -66,7 +66,7 @@ curl http://10.1.0.10:8080/v1/jobs -XPOST -d '{
 curl http://10.1.0.10:8080/v1/jobs -XPOST -d '{
   "name": "job2",
   "schedule": "@every 1m",
-  "timezone": "Europe/Berlin",
+  "timezone": "Asia/Taipei",
   "owner": "Platform Team",
   "owner_email": "platform@example.com",
   "disabled": false,
