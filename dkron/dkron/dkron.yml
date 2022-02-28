@@ -22,7 +22,9 @@ log-level: debug
 retry-join:
   # - '{{ GetAllInterfaces | exclude "flags" "loopback" | attr "address" }}'
   - 10.1.0.10
-# webhook-url: https://hooks.slack.com/services/XXXXXX/XXXXXXX/XXXXXXXXXXXXXXXXXXXX
+  - 10.1.0.20
+  - 10.1.0.30
+  # webhook-url: https://hooks.slack.com/services/XXXXXX/XXXXXXX/XXXXXXXXXXXXXXXXXXXX
 # webhook-payload: ""{\"text\":\"A status of {{.JobName}} is {{.Success}}\",\"username\":\"DkronBot\"}""
 # webhook-headers:
 #   - Content-Type:application/json
