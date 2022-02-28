@@ -65,7 +65,7 @@ curl http://localhost:8080/v1/jobs -XPOST -d '{
 ```console
 curl http://localhost:8080/v1/jobs -XPOST -d '{
   "name": "job2",
-  "schedule": "@every 10s",
+  "schedule": "@every 10m",
   "timezone": "Europe/Berlin",
   "owner": "Platform Team",
   "owner_email": "platform@example.com",

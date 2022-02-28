@@ -3,21 +3,35 @@ version: "3.7"
 
 services:
 
-  dkron:
-    image: dkron/dkron
-    restart: always
-    ports:
-      - "8080:8080" # for HTTP for the API and Dashboard
-      - "8946" # for serf layer between agents
-      - "6868" # for gRPC and raft layer comunication between agents.
-    command: agent --server --log-level=debug --bootstrap-expect=1
-
   dkron-server:
     image: dkron/dkron
+    container_name: dkron-server
     restart: always
-    ports:
-      - "8080"
-      - "8946"
-      - "6868"
-    command: agent --server --retry-join=dkron:8946 --log-level=debug
-      --bootstrap-expect=3
+    # ports:
+    #   - "0.0.0.0:8080:8080" # for HTTP for the API and Dashboard
+    #   - "0.0.0.0:8946:8946" # for serf layer between agents
+    #   - "0.0.0.0:6868:6868" # for gRPC and raft layer comunication between agents.
+    command:
+      [
+        "agent",
+        "--config=/etc/dkron/dkron.yml",
+        "--advertise-addr=${HOSTIP}",
+        "--bind-addr=${HOSTIP}",
+        "--data-dir=/dkron/data"
+      ]
+    volumes:
+      - ./dkron/dkron.yml:/etc/dkron/dkron.yml
+      - /home/vagrant/dkron/data:/dkron/data
+    network_mode: "host"
+
+    # networks:
+    #   vpcbr:
+    #     ipv4_address: 169.254.3.1
+
+# networks:
+#   vpcbr:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 169.254.0.0/16
+#           gateway: 169.254.1.1

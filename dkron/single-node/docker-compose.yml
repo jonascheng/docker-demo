@@ -7,10 +7,10 @@ services:
     image: dkron/dkron
     restart: always
     ports:
-      - "8080:8080" # for HTTP for the API and Dashboard
+      - "0.0.0.0:8080:8080" # for HTTP for the API and Dashboard
       - "8946" # for serf layer between agents
       - "6868" # for gRPC and raft layer comunication between agents.
-    command: agent --server --log-level=debug --bootstrap-expect=1
+    command: agent --server --log-level=debug --bootstrap-expect=1 --retry-join=dkron:8946
 
   dkron-server:
     image: dkron/dkron
