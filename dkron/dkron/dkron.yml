@@ -7,7 +7,7 @@ server: true
 # Either this value should not be provided or the value must agree with other servers in the cluster.
 # When provided, Dkron waits until the specified number of servers are available and then bootstraps the cluster.
 # This allows an initial leader to be elected automatically. This flag requires server mode.
-bootstrap-expect: 1
+bootstrap-expect: 3
 
 # with host network
 bind-addr: '{{ GetInterfaceIP "eth1" }}'
