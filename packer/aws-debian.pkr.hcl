@@ -18,6 +18,11 @@ source "amazon-ebs" "debian" {
   region        = "us-west-2"
   source_ami    = "ami-07437ddc77ba01a60"
   ssh_username  = "admin"
+
+  // https://www.packer.io/plugins/builders/amazon/ebs
+  force_deregister      = true
+  force_delete_snapshot = true
+  encrypt_boot          = false
 }
 
 build {
