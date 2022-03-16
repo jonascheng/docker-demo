@@ -1,0 +1,23 @@
+$dockercompose = <<-SCRIPT
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+SCRIPT
+
+$packer = <<-SCRIPT
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install packer
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "boxomatic/ubuntu-18.04"
+  config.vm.box_version = "20210723.0.1"
+  config.vm.provision "docker"
+  config.vm.provision "shell", inline: $dockercompose
+  config.vm.provision "shell", inline: $packer
+
+  config.vm.define "cicd" do |node|
+    node.vm.network "private_network", type: "dhcp"
+  end
+end
