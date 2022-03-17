@@ -20,6 +20,7 @@ variable "region" {
 data "amazon-ami" "debian" {
   filters = {
     virtualization-type = "hvm"
+    // Refer product code from https://wiki.debian.org/Cloud/AmazonEC2Image/Marketplace
     product-code        = "55q52qvgjfpdj2fpfy9mb1lo4"
     root-device-type    = "ebs"
   }
