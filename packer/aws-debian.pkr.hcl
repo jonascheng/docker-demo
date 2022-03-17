@@ -31,6 +31,15 @@ source "amazon-ebs" "debian" {
   force_deregister = true
   // Force Packer to delete snapshots associated with AMIs, which have been deregistered by force_deregister.
   force_delete_snapshot = true
+
+  // Add one or more block devices before the Packer build starts.
+  launch_block_device_mappings {
+    // Intent to resize root device
+    device_name           = "xvda"
+    volume_size           = 25
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
 }
 
 build {
