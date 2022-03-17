@@ -9,7 +9,23 @@ packer {
 
 variable "img_version" {
   type    = string
-  default = ""
+  default = "nil"
+}
+
+variable "region" {
+  type    = string
+  default = "us-west-2"
+}
+
+data "amazon-ami" "debian" {
+  filters = {
+    virtualization-type = "hvm"
+    product-code        = "55q52qvgjfpdj2fpfy9mb1lo4"
+    root-device-type    = "ebs"
+  }
+  region      = "${var.region}"
+  owners      = ["aws-marketplace"]
+  most_recent = true
 }
 
 // https://www.packer.io/plugins/builders/amazon/ebs
@@ -23,9 +39,10 @@ source "amazon-ebs" "debian" {
   ami_description = "packer-demo-${var.img_version}"
 
   instance_type = "t2.micro"
-  region        = "us-west-2"
-  source_ami    = "ami-07437ddc77ba01a60"
-  ssh_username  = "admin"
+  region        = "${var.region}"
+  source_ami    = data.amazon-ami.debian.id
+  // The username to connect to SSH with.
+  ssh_username = "admin"
 
   // Force Packer to first deregister an existing AMI if one with the same name already exists.
   force_deregister = true
