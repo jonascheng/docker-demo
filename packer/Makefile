@@ -6,18 +6,38 @@ PACKER?=packer
 
 .PHONY: setup
 setup: ## setup CI/CD environment
-	$(PACKER) init .
+	## install packer
+	curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+	sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(shell lsb_release -cs) main"
+	sudo apt-get update -y && sudo apt-get install -y packer
+	## install virtualbox and vagrant
+	curl -O https://releases.hashicorp.com/vagrant/2.2.18/vagrant_2.2.18_x86_64.deb
+	sudo apt-get update -y && sudo apt-get install -y virtualbox
+	sudo apt-get install -y ./vagrant_2.2.18_x86_64.deb
+	rm *.deb
+
+.PHONY: init
+init: ## init packer
+	@for hcl in $(shell ls *.hcl); do $(PACKER) init $${hcl}; done
 
 .PHONY: lint
-lint: setup ## lint packer template
-	$(PACKER) fmt .
-	$(PACKER) validate .
+lint: init ## lint packer template
+	@for hcl in $(shell ls *.hcl); do $(PACKER) fmt $${hcl}; done
+	@for hcl in $(shell ls *.hcl); do $(PACKER) validate $${hcl}; done
+
+.PHONY: build-ova-image
+build-ova-image: init ## build OVA image
+	@echo "[INFO] Start to build OVA image..."
+	$(PACKER) build \
+		--force \
+		-var "img_version=$(IMG_VERSION)" \
+		vagrant-debian.pkr.hcl
 
 ####
 ## The policy document provides the minimal set permissions necessary for the Amazon plugin to work: https://www.packer.io/plugins/builders/amazon#iam-task-or-instance-role
 ####
 .PHONY: build-aws-image
-build-aws-image: setup ## build AWS AMI image
+build-aws-image: init ## build AWS AMI image
 ifndef AWS_ACCESS_KEY_ID
 	$(error AWS_ACCESS_KEY_ID not set on environment variables)
 endif
