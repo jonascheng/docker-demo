@@ -4,25 +4,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
-$packer = <<-SCRIPT
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-sudo apt-get update -y && sudo apt-get install -y packer
-SCRIPT
-
-$vagrant = <<-SCRIPT
-curl -O https://releases.hashicorp.com/vagrant/2.2.18/vagrant_2.2.18_x86_64.deb
-sudo apt-get update -y && sudo apt-get install -y virtualbox
-sudo apt-get install -y ./vagrant_2.2.18_x86_64.deb
-SCRIPT
-
 Vagrant.configure("2") do |config|
-  config.vm.box = "boxomatic/ubuntu-18.04"
-  config.vm.box_version = "20210723.0.1"
+  config.vm.box = "debian/stretch64"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockercompose
-  # config.vm.provision "shell", inline: $packer
-  # config.vm.provision "shell", inline: $vagrant
 
   config.vm.define "cicd" do |node|
     node.vm.network "private_network", type: "dhcp"

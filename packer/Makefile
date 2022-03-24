@@ -7,14 +7,16 @@ PACKER?=packer
 .PHONY: setup
 setup: ## setup CI/CD environment
 	## required package
-	sudo apt-get update -y && sudo apt-get install -y curl
+	sudo apt-get update -y && sudo apt-get install -y curl software-properties-common apt-transport-https
 	## install packer
 	curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 	sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(shell lsb_release -cs) main"
 	sudo apt-get update -y && sudo apt-get install -y packer
 	## install virtualbox and vagrant
+	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+	sudo apt-add-repository "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(shell lsb_release -cs) contrib"
 	curl -O https://releases.hashicorp.com/vagrant/2.2.19/vagrant_2.2.19_x86_64.deb
-	sudo apt-get update -y && sudo apt-get install -y virtualbox
+	sudo apt-get update -y && sudo apt-get install -y virtualbox-6.0
 	sudo apt-get install -y ./vagrant_2.2.19_x86_64.deb
 	rm *.deb
 
