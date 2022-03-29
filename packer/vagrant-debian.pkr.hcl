@@ -38,6 +38,6 @@ build {
       "--extra-vars", "suser=${var.suser}", "spass=${var.spass}", "fpuser=${var.fpuser}", "fppass=${var.fppass}"
     ]
 
-    playbook_file = "./playbook.yml"
+    playbook_file = "./ansible-playbook.yml"
   }
 }

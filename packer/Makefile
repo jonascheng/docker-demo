@@ -7,7 +7,7 @@ PACKER?=packer
 .PHONY: setup
 setup: ## setup CI/CD environment
 	## required package
-	sudo apt-get update -y && sudo apt-get install -y curl software-properties-common apt-transport-https
+	sudo apt-get update -y && sudo apt-get install -y curl software-properties-common apt-transport-https dirmngr --install-recommends
 	## install packer
 	curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 	sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(shell lsb_release -cs) main"
@@ -19,6 +19,10 @@ setup: ## setup CI/CD environment
 	sudo apt-get update -y && sudo apt-get install -y virtualbox-6.0
 	sudo apt-get install -y ./vagrant_2.2.19_x86_64.deb
 	rm *.deb
+	## install ansible
+	sudo apt-add-repository "deb http://ppa.launchpad.net/ansible/ansible/ubuntu xenial main"
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+	sudo apt-get update -y && sudo apt-get -y install ansible
 
 .PHONY: init
 init: ## init packer
