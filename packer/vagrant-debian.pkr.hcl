@@ -1,15 +1,22 @@
-packer {
-  required_plugins {
-    amazon = {
-      version = ">= 0.0.2"
-      source  = "github.com/hashicorp/amazon"
-    }
-  }
-}
-
 variable "img_version" {
   type    = string
   default = "nil"
+}
+
+variable "suser" {
+  type    = string
+}
+
+variable "spass" {
+  type    = string
+}
+
+variable "fpuser" {
+  type    = string
+}
+
+variable "fppass" {
+  type    = string
 }
 
 // https://www.packer.io/plugins/builders/amazon/ebs
@@ -25,4 +32,13 @@ build {
   sources = [
     "source.vagrant.debian"
   ]
+
+  provisioner "ansible" {
+    extra_arguments = [
+      "-vvvv",
+      "--extra-vars", "suser=${var.suser}", "spass=${var.spass}", "fpuser=${var.fpuser}", "fppass=${var.fppass}"
+    ]
+
+    playbook_file = "./playbook.yml"
+  }
 }
