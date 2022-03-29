@@ -1,22 +1,21 @@
-variable "img_version" {
-  type    = string
-  default = "nil"
-}
-
 variable "suser" {
   type    = string
+  default = "root"
 }
 
 variable "spass" {
   type    = string
+  default = "txone"
 }
 
 variable "fpuser" {
   type    = string
+  default = "admin"
 }
 
 variable "fppass" {
   type    = string
+  default = "txone"
 }
 
 // https://www.packer.io/plugins/builders/amazon/ebs
