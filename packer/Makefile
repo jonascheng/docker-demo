@@ -33,8 +33,8 @@ lint: init ## lint packer template
 	@for hcl in $(shell ls *.hcl); do $(PACKER) fmt $${hcl}; done
 	@for hcl in $(shell ls *.hcl); do $(PACKER) validate $${hcl}; done
 
-.PHONY: build-ova-image
-build-ova-image: init ## build OVA image
+.PHONY: build-box-image
+build-ova-image: init ## build VBox image
 	@echo "[INFO] Start to build OVA image..."
 	$(PACKER) build \
 		--force \
