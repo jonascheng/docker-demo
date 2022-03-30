@@ -35,7 +35,10 @@ build {
   provisioner "ansible" {
     extra_arguments = [
       "-vvvv",
-      "--extra-vars", "suser=${var.suser}", "spass=${var.spass}", "fpuser=${var.fpuser}", "fppass=${var.fppass}"
+      "-e", "suser=${var.suser}",
+      "-e", "spass=${var.spass}",
+      "-e", "fpuser=${var.fpuser}",
+      "-e", "fppass=${var.fppass}"
     ]
 
     playbook_file = "./ansible-playbook.yml"

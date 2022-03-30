@@ -38,7 +38,6 @@ build-ova-image: init ## build OVA image
 	@echo "[INFO] Start to build OVA image..."
 	$(PACKER) build \
 		--force \
-		-var "img_version=$(IMG_VERSION)" \
 		vagrant-debian.pkr.hcl
 
 ####
