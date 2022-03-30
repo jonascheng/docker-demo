@@ -17,6 +17,26 @@ variable "region" {
   default = "us-west-2"
 }
 
+variable "suser" {
+  type    = string
+  default = "root"
+}
+
+variable "spass" {
+  type    = string
+  default = "txone"
+}
+
+variable "fpuser" {
+  type    = string
+  default = "admin"
+}
+
+variable "fppass" {
+  type    = string
+  default = "txone"
+}
+
 data "amazon-ami" "debian" {
   filters = {
     virtualization-type = "hvm"
@@ -32,7 +52,7 @@ data "amazon-ami" "debian" {
 // https://www.packer.io/plugins/builders/amazon/ebs
 source "amazon-ebs" "debian" {
   // If true, Packer will not create the AMI. Useful for setting to true during a build test stage.
-  skip_create_ami = true
+  skip_create_ami = false
 
   // The name of the resulting AMI that will appear when managing AMIs in the AWS console or via APIs. This must be unique.
   ami_name = "packer-demo-${var.img_version}"
