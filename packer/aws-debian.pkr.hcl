@@ -65,4 +65,16 @@ build {
   sources = [
     "source.amazon-ebs.debian"
   ]
+
+  provisioner "ansible" {
+    extra_arguments = [
+      "-vvvv",
+      "-e", "suser=${var.suser}",
+      "-e", "spass=${var.spass}",
+      "-e", "fpuser=${var.fpuser}",
+      "-e", "fppass=${var.fppass}"
+    ]
+
+    playbook_file = "./ansible-playbook.yml"
+  }
 }
