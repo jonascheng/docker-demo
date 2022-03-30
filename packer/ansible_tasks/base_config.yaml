@@ -1,0 +1,27 @@
+- name: Download go1.13.7.linux-amd64.tar.gz
+  get_url:
+    url: https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
+    dest: /tmp
+
+- name: Set a hostname
+  ansible.builtin.hostname:
+    name: txone
+
+- name: basic config
+  command: "{{item}}"
+  args:
+    warn: false
+  with_items:
+    - sudo su -c "echo 127.0.0.1    txone >> /etc/hosts"
+
+- name: Restart service sshd, in all cases
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: upload files
+  copy:
+    src: "{{ item }}"
+    dest: /tmp
+  with_fileglob:
+    - '{{playbook_dir}}'/open-vm-tools.list
