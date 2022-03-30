@@ -1,7 +1,7 @@
 - name: Download go1.13.7.linux-amd64.tar.gz
   get_url:
     url: https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
-    dest: "/home/{{ ansible_ssh_user }}"
+    dest: /root
 
 - name: Set a hostname
   ansible.builtin.hostname:
@@ -22,6 +22,6 @@
 - name: upload files
   copy:
     src: "{{ item }}"
-    dest: "/home/{{ ansible_ssh_user }}"
+    dest: /root
   with_fileglob:
     - "{{playbook_dir}}/open-vm-tools.list"
