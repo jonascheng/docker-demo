@@ -24,4 +24,4 @@
     src: "{{ item }}"
     dest: /tmp
   with_fileglob:
-    - '{{playbook_dir}}'/open-vm-tools.list
+    - "{{playbook_dir}}/open-vm-tools.list"

@@ -1,7 +1,7 @@
 ---
 # ansible-playbook.yml
 - name: 'Provision Image'
-  hosts: default
+  hosts: all
   become: true
 
   tasks:
