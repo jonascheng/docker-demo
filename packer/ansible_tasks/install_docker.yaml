@@ -11,15 +11,12 @@
   with_items:
     - apt-key fingerprint 0EBFCD88
 
-- name: install Docker - Add respository to APT sources
-  command: "{{item}}"
-  args:
-    warn: false
-  ignore_errors: true
-  with_items:
-    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable"
+- name: Add specified repository into sources list for installing docker dependent packages
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+    state: present
 
-- name: Update repositories cache and install docker dependent package
+- name: Update repositories cache and install docker dependent packages
   apt:
     pkg:
     - docker-ce
