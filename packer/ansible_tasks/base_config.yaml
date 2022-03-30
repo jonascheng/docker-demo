@@ -1,3 +1,10 @@
+- name: Update repositories cache and install curl package
+  apt:
+    pkg:
+    - curl
+    state: latest
+    update_cache: yes
+
 - name: Download go1.13.7.linux-amd64.tar.gz
   get_url:
     url: https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
