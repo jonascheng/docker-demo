@@ -1,0 +1,29 @@
+- name: install Docker - Add the GPG key
+  shell: curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+  args:
+    warn: no
+
+- name: install Docker - Add fingerprint
+  command: "{{item}}"
+  args:
+    warn: false
+  ignore_errors: true
+  with_items:
+    - apt-key fingerprint 0EBFCD88
+
+- name: install Docker - Add respository to APT sources
+  command: "{{item}}"
+  args:
+    warn: false
+  ignore_errors: true
+  with_items:
+    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable"
+
+- name: Update repositories cache and install docker dependent package
+  apt:
+    pkg:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    state: latest
+    update_cache: yes

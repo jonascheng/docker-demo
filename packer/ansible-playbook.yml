@@ -6,3 +6,4 @@
 
   tasks:
     - include: ansible_tasks/base_config.yaml
+    - include: ansible_tasks/install_docker.yaml
