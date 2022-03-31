@@ -2,6 +2,7 @@
   apt:
     pkg:
     - curl
+    - apt-transport-https
     state: latest
     update_cache: yes
 

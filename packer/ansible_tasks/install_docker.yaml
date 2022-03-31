@@ -1,15 +1,12 @@
-- name: install Docker - Add the GPG key
-  shell: curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-  args:
-    warn: no
+- name: Add an apt signing key from docker, uses whichever key is at the URL
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
 
-- name: install Docker - Add fingerprint
-  command: "{{item}}"
-  args:
-    warn: false
-  ignore_errors: true
-  with_items:
-    - apt-key fingerprint 0EBFCD88
+- name: Add an apt key by id
+  ansible.builtin.apt_key:
+    id: 0EBFCD88
+    state: present
 
 - name: Add specified repository into sources list for installing docker dependent packages
   ansible.builtin.apt_repository:
