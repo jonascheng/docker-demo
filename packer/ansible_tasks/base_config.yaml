@@ -11,17 +11,6 @@
     url: https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz
     dest: /root
 
-- name: Set a hostname
-  ansible.builtin.hostname:
-    name: txone
-
-- name: basic config
-  command: "{{item}}"
-  args:
-    warn: false
-  with_items:
-    - sudo su -c "echo 127.0.0.1    txone >> /etc/hosts"
-
 - name: Restart service sshd, in all cases
   ansible.builtin.service:
     name: sshd
