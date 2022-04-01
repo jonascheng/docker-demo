@@ -1,3 +1,5 @@
 artifacts/**
 *.deb
 vagrant/**
+*.box
+
