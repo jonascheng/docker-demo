@@ -1,2 +1,0 @@
-# for local test, ansible-playbook -i ansible_hosts ansible-playbook.yml
-localhost ansible_connection=local
