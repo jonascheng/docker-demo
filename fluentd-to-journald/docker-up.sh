@@ -1,6 +1,7 @@
 #!/bin/bash
 
 docker rm -f `docker ps -qa`
+rm -rf fluentd/data
 
 docker-compose -f fluentd/docker-compose.yml up $@
 
