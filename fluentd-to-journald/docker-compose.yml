@@ -3,13 +3,27 @@ version: "3.7"
 
 services:
 
-  nginx-log-generator:
+  fluentd:
+    image: fluent/fluentd:v1.14-1
+    container_name: fluentd
+    hostname: fluentd
+    restart: always
+    volumes:
+    - ./fluentd/data:/fluentd/log
+    - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    ports:
+    - 127.0.0.1:24224:24224
+    - 127.0.0.1:24224:24224/udp
+
+  system-nginx-log-generator:
+    depends_on:
+      - fluentd
     image: kscarlett/nginx-log-generator
-    container_name: nginx-log-generator
-    hostname: nginx-log-generator
+    container_name: system-nginx-log-generator
+    hostname: system-nginx-log-generator
     restart: always
     environment:
-      - RATE=1
+      - RATE=10
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
@@ -17,7 +31,31 @@ services:
       driver: "fluentd"
       options:
         fluentd-address: 127.0.0.1:24224
+        fluentd-async-connect: 'true'
+        fluentd-retry-wait: '1s'
+        fluentd-max-retries: '3'
         tag: docker.system.nginx
+
+  nginx-log-generator:
+    depends_on:
+      - fluentd
+    image: kscarlett/nginx-log-generator
+    container_name: nginx-log-generator
+    hostname: nginx-log-generator
+    restart: always
+    environment:
+      - RATE=10
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.30
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: 127.0.0.1:24224
+        fluentd-async-connect: 'true'
+        fluentd-retry-wait: '1s'
+        fluentd-max-retries: '3'
+        tag: docker.nginx
 
 networks:
   vpcbr:
