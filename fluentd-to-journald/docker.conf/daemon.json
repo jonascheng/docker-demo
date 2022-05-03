@@ -1,6 +1,10 @@
 {
-    "log-driver": "journald",
+    "log-driver": "fluentd",
     "log-opts": {
+        "fluentd-address": "127.0.0.1:24224",
+        "fluentd-async-connect": "true",
+        "fluentd-retry-wait": "1s",
+        "fluentd-max-retries": "4294967295",
         "tag": "{{.Name}}/{{.ID}}"
     }
 }
