@@ -5,4 +5,5 @@ rm -rf fluentd/data
 mkdir -p fluentd/data
 chmod a+w -R fluentd/data
 
+docker-compose -f docker-compose.yml build
 docker-compose -f docker-compose.yml up $@

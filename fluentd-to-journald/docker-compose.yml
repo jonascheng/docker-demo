@@ -4,7 +4,10 @@ version: "3.7"
 services:
 
   fluentd:
-    image: fluent/fluentd:v1.14-1
+    build:
+      context: ./fluentd/
+      dockerfile: Dockerfile
+    image: fluent-image
     container_name: fluentd
     hostname: fluentd
     restart: always
