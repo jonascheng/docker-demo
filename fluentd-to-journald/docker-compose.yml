@@ -14,9 +14,30 @@ services:
     volumes:
       - ./fluentd/data:/fluentd/log
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+      # sync with host timezone
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - SEVERITY=error|fatal
     ports:
       - 127.0.0.1:24224:24224
       - 127.0.0.1:24224:24224/udp
+    logging:
+      driver: "journald"
+      options:
+        tag: "{{.Name}}/{{.ID}}"
+
+  logrotate:
+    build:
+      context: ./logrotate/
+      dockerfile: Dockerfile
+    image: logrotate-image
+    container_name: logrotate
+    hostname: logrotate
+    restart: always
+    volumes:
+      - ./fluentd/data/:/var/log/
+    environment:
+      - LOGROTATE_CRON=*/5 0 0 0 0
     logging:
       driver: "journald"
       options:
@@ -30,22 +51,10 @@ services:
     hostname: nginx
     restart: always
     environment:
-      - RATE=10
+      - RATE=1
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
-  # dummy-log-generator:
-  #   depends_on:
-  #     - fluentd
-  #   image: kscarlett/nginx-log-generator
-  #   container_name: dummy
-  #   hostname: dummy
-  #   restart: always
-  #   environment:
-  #     - RATE=10
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 10.5.0.30
 
 networks:
   vpcbr:
