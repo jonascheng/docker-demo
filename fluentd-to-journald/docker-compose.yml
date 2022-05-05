@@ -34,19 +34,18 @@ services:
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
-
-  dummy-log-generator:
-    depends_on:
-      - fluentd
-    image: kscarlett/nginx-log-generator
-    container_name: dummy
-    hostname: dummy
-    restart: always
-    environment:
-      - RATE=10
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.30
+  # dummy-log-generator:
+  #   depends_on:
+  #     - fluentd
+  #   image: kscarlett/nginx-log-generator
+  #   container_name: dummy
+  #   hostname: dummy
+  #   restart: always
+  #   environment:
+  #     - RATE=10
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 10.5.0.30
 
 networks:
   vpcbr:
