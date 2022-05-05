@@ -14,10 +14,8 @@ services:
     volumes:
       - ./fluentd/data:/fluentd/log
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
-      # sync with host timezone
-      - /etc/localtime:/etc/localtime:ro
     environment:
-      - SEVERITY=error|fatal
+      - SEVERITY=/^(info|fatal)/
     ports:
       - 127.0.0.1:24224:24224
       - 127.0.0.1:24224:24224/udp
@@ -37,7 +35,7 @@ services:
     volumes:
       - ./fluentd/data/:/var/log/
     environment:
-      - LOGROTATE_CRON=*/5 0 0 0 0
+      - LOGROTATE_CRON=*/5 * * * *
     logging:
       driver: "journald"
       options:
@@ -51,7 +49,7 @@ services:
     hostname: nginx
     restart: always
     environment:
-      - RATE=1
+      - RATE=10
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
