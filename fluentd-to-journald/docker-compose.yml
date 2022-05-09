@@ -12,7 +12,7 @@ services:
     hostname: fluentd
     restart: always
     volumes:
-      - ./fluentd/data:/fluentd/log
+      - /tmp/fluentd/data:/fluentd/log
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
     environment:
       - SEVERITY=/^(info|fatal)/
@@ -33,9 +33,9 @@ services:
     hostname: logrotate
     restart: always
     volumes:
-      - ./fluentd/data/:/var/log/
+      - /tmp/fluentd/data:/var/log/
     environment:
-      - LOGROTATE_CRON=*/5 * * * *
+      - LOGROTATE_CRON=5 0 * * *
     logging:
       driver: "journald"
       options:
@@ -49,7 +49,7 @@ services:
     hostname: nginx
     restart: always
     environment:
-      - RATE=10
+      - RATE=1
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
