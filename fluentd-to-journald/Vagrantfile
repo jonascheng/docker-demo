@@ -13,6 +13,8 @@ $installcron = <<-SCRIPT
 sudo timedatectl set-ntp no
 sudo crontab -l > cron_bkp
 sudo echo "10 0 * * * /usr/bin/timedatectl set-time 23:59:59 >/dev/null 2>&1" >> cron_bkp
+# trigger zap logger per minute
+sudo echo "*/1 * * * * /usr/bin/curl -X POST 127.0.0.1:9030/log/zaplogger >/dev/null 2>&1" >> cron_bkp
 sudo crontab cron_bkp
 sudo rm cron_bkp
 sudo /usr/bin/timedatectl set-time 23:50:00

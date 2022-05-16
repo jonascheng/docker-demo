@@ -15,7 +15,7 @@ services:
       - /tmp/fluentd/data:/fluentd/log
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
     environment:
-      - SEVERITY=/^(info|error|fatal)/
+      - SEVERITY=/^(warn|error|fatal)/
     ports:
       - 127.0.0.1:24224:24224
       - 127.0.0.1:24224:24224/udp
@@ -53,6 +53,19 @@ services:
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
+
+  zap-logger:
+    depends_on:
+      - fluentd
+    image: jsenon/loggenerator:latest
+    container_name: zaplogger
+    hostname: zaplogger
+    restart: always
+    ports:
+      - 127.0.0.1:9030:9030
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.21
 
 networks:
   vpcbr:
