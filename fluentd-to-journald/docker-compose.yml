@@ -13,7 +13,7 @@ services:
     restart: always
     volumes:
       - /tmp/fluentd/data:/fluentd/log
-      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+      - ./fluentd/:/fluentd/etc/
     environment:
       - SEVERITY=/^(warn|error|fatal)/
     ports:
@@ -66,6 +66,18 @@ services:
     networks:
       vpcbr:
         ipv4_address: 10.5.0.21
+
+  random-logger:
+    depends_on:
+      - fluentd
+    image: chentex/random-logger:latest
+    container_name: randomlogger
+    hostname: randomlogger
+    restart: always
+    command: [ "1000", "5000" ]
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.22
 
 networks:
   vpcbr:
