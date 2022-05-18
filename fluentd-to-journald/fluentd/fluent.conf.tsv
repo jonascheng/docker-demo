@@ -1,0 +1,83 @@
+<source>
+  @type  forward
+  @label @mainstream
+  port  24224
+</source>
+
+@include routes/*.conf
+
+<label @mainstream>
+  <match nginx/**>
+    @type relabel
+    @label @nginx
+  </match>
+
+  <match zaplogger/**>
+    @type relabel
+    @label @zaplogger
+  </match>
+
+  <match randomlogger/**>
+    @type relabel
+    @label @randomlogger
+  </match>
+
+  # fall back no match
+  <match **>
+    @type stdout
+  </match>
+</label>
+
+# route for serverity control
+<label @severity_control>
+  # insert tag into log record for later filter
+  <filter **>
+    @type record_transformer
+    <record>
+      time ${time}
+      tag ${tag}
+    </record>
+  </filter>
+
+  # filter desired log according to tag field
+  <filter **>
+    @type grep
+    <regexp>
+      key tag
+      pattern "#{ENV['SEVERITY']}"
+    </regexp>
+  </filter>
+
+  # route to output
+  <match **>
+    @type relabel
+    @label @output
+  </match>
+</label>
+
+<label @output>
+  # only keey time,tag,log field
+  <filter **>
+    @type record_transformer
+    renew_record true
+    keep_keys time,tag,log
+  </filter>
+
+  <match **>
+    @type file
+    path /fluentd/log/docker.*.log
+    append true
+    time_slice_format %Y%m%d
+    time_slice_wait 1m
+    time_format %Y%m%dT%H%M%S%z
+    <format>
+    @type tsv
+    keys time,tag,log
+    </format>
+  </match>
+</label>
+
+# fall back no match
+<match **>
+  @type stdout
+</match>
