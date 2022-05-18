@@ -42,8 +42,6 @@ services:
         tag: "{{.Name}}/{{.ID}}"
 
   nginx-log-generator:
-    depends_on:
-      - fluentd
     image: kscarlett/nginx-log-generator
     container_name: nginx
     hostname: nginx
@@ -55,8 +53,6 @@ services:
         ipv4_address: 10.5.0.20
 
   zap-logger:
-    depends_on:
-      - fluentd
     image: jsenon/loggenerator:latest
     container_name: zaplogger
     hostname: zaplogger
@@ -68,8 +64,6 @@ services:
         ipv4_address: 10.5.0.21
 
   random-logger:
-    depends_on:
-      - fluentd
     image: chentex/random-logger:latest
     container_name: randomlogger
     hostname: randomlogger
