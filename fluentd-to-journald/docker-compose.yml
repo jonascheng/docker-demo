@@ -14,8 +14,8 @@ services:
     volumes:
       - /tmp/fluentd/data:/fluentd/log
       - ./fluentd/:/fluentd/etc/
-    environment:
-      - SEVERITY=/^(warn|error|fatal)/
+    env_file:
+      - ./fluentd/.env
     ports:
       - 127.0.0.1:24224:24224
       - 127.0.0.1:24224:24224/udp
