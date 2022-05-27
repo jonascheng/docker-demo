@@ -26,5 +26,8 @@ else
   echo "${LOGROTATE_CRON:-15min} /etc/.logrotate.cronjob" >> /var/spool/cron/crontabs/root
 fi
 
+# create empty log purposely
+touch /var/log/docker.log
+
 # shellcheck disable=SC2086
 exec crond -d ${CROND_LOGLEVEL:-7} -f 2>&1 | ts "${TS_FORMAT}"

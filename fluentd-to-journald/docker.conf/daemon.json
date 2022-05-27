@@ -1,10 +1,14 @@
 {
     "log-driver": "fluentd",
     "log-opts": {
+        "mode": "non-blocking",
+        "max-buffer-size": "8m",
         "fluentd-address": "127.0.0.1:24224",
         "fluentd-async-connect": "true",
-        "fluentd-retry-wait": "1s",
+        "fluentd-async": "true",
+        "fluentd-retry-wait": "3s",
         "fluentd-max-retries": "4294967295",
+        "fluentd-buffer-limit": "8192",
         "tag": "{{.Name}}/{{.ID}}"
     }
 }

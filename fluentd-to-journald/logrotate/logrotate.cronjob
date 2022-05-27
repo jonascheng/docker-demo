@@ -8,7 +8,7 @@ if [ -x /usr/bin/cpulimit ] && [ -n "$CPULIMIT" ]; then
         _cpulimit="/usr/bin/cpulimit --limit=$CPULIMIT"
 fi
 
-$_cpulimit /usr/sbin/logrotate -v /etc/logrotate.conf
+$_cpulimit /usr/sbin/logrotate -v --state=/var/lib/logrotate/logrotate.status /etc/logrotate.conf
 EXITVALUE=$?
 if [ $EXITVALUE != 0 ]; then
     /usr/bin/logger -t logrotate "ALERT exited abnormally with [$EXITVALUE]"

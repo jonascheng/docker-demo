@@ -12,7 +12,7 @@ services:
     hostname: fluentd
     restart: always
     volumes:
-      - /tmp/fluentd/data:/fluentd/log
+      - /var/log/journal/fluentd/:/fluentd/log
       - ./fluentd/:/fluentd/etc/
     env_file:
       - ./fluentd/.env
@@ -33,7 +33,8 @@ services:
     hostname: logrotate
     restart: always
     volumes:
-      - /tmp/fluentd/data:/var/log/
+      - /var/log/journal/fluentd/:/var/log/
+      - /tmp/logrotate/data/:/var/lib/logrotate/
     environment:
       - LOGROTATE_CRON=5 0 * * *
     logging:
@@ -47,7 +48,7 @@ services:
     hostname: nginx
     restart: always
     environment:
-      - RATE=1
+      - RATE=1000
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
@@ -68,7 +69,7 @@ services:
     container_name: randomlogger
     hostname: randomlogger
     restart: always
-    command: [ "1000", "5000" ]
+    command: [ "1", "10" ]
     networks:
       vpcbr:
         ipv4_address: 10.5.0.22

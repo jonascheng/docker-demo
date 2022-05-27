@@ -1,5 +1,7 @@
 FROM linkyard/logrotate
 
+RUN mkdir -p /var/lib/logrotate
+
 COPY logrotate.conf /etc/logrotate.conf
 RUN chmod 0644 /etc/logrotate.conf
 COPY logrotate.cronjob /etc/.logrotate.cronjob
