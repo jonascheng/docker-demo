@@ -24,23 +24,40 @@ services:
       options:
         tag: "{{.Name}}/{{.ID}}"
 
-  logrotate:
+  fluentd.housekeeping:
     build:
-      context: ./logrotate/
+      context: ./fluentd.housekeeping/
       dockerfile: Dockerfile
-    image: logrotate-image
-    container_name: logrotate
-    hostname: logrotate
+    image: fluent-housekeeping-image
+    container_name: fluentd.housekeeping
+    hostname: fluentd.housekeeping
     restart: always
     volumes:
       - /var/log/journal/fluentd/:/var/log/
-      - /tmp/logrotate/data/:/var/lib/logrotate/
     environment:
-      - LOGROTATE_CRON=5 0 * * *
+      - FLUENTD_HOUSEKEEPING_CRON=5 0 * * *
     logging:
       driver: "journald"
       options:
         tag: "{{.Name}}/{{.ID}}"
+
+  # logrotate:
+  #   build:
+  #     context: ./logrotate/
+  #     dockerfile: Dockerfile
+  #   image: logrotate-image
+  #   container_name: logrotate
+  #   hostname: logrotate
+  #   restart: always
+  #   volumes:
+  #     - /var/log/journal/fluentd/:/var/log/
+  #     - /tmp/logrotate/data/:/var/lib/logrotate/
+  #   environment:
+  #     - LOGROTATE_CRON=5 0 * * *
+  #   logging:
+  #     driver: "journald"
+  #     options:
+  #       tag: "{{.Name}}/{{.ID}}"
 
   nginx-log-generator:
     image: kscarlett/nginx-log-generator
