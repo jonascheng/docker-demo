@@ -5,8 +5,13 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
 $dockerconf = <<-SCRIPT
-sudo cp /vagrant/docker.conf/daemon.json /etc/docker/daemon.json
+sudo cp /vagrant/docker.conf/daemon.fluentd.json /etc/docker/daemon.json
 sudo systemctl restart docker
+SCRIPT
+
+$journaldconf = <<-SCRIPT
+sudo cp /vagrant/journald.conf/journald.conf /etc/systemd/journald.conf
+sudo systemctl restart systemd-journald
 SCRIPT
 
 $installcron = <<-SCRIPT
@@ -25,6 +30,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20210723.0.1"
   config.vm.provision "docker"
   config.vm.provision "shell", inline: $dockerconf
+  config.vm.provision "shell", inline: $journaldconf
   config.vm.provision "shell", inline: $dockercompose
   config.vm.provision "shell", inline: $installcron
 
