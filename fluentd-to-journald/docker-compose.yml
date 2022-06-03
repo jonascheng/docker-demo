@@ -36,6 +36,7 @@ services:
       - /var/log/journal/fluentd/:/var/log/
     environment:
       - FLUENTD_HOUSEKEEPING_CRON=5 0 * * *
+      - FLUENTD_HOUSEKEEPING_DAYS=30
     logging:
       driver: "journald"
       options:
