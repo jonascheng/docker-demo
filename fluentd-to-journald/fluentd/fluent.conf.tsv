@@ -67,9 +67,31 @@
     @type file
     path /fluentd/log/docker.*.log
     append true
-    time_slice_format %Y%m%d
-    time_slice_wait 1m
-    time_format %Y%m%dT%H%M%S%z
+    compress gzip
+    time_slice_format %Y%m%d%H
+
+    <buffer>
+      @type file
+      path /fluentd/log/docker.*.log
+      # Chunks per hours ("3600" also available)
+      timekey 1h
+      # 1mins delay for flush ("300" also available)
+      timekey_wait 1m
+      # Flushes/writes chunks per specified time via flush_interval
+      flush_mode interval
+      flush_interval 30s
+      flush_at_shutdown true
+      # The maximum number of times to retry to flush the failed chunks
+      retry_max_times 10
+      # Control the buffer behavior when the queue becomes full – 3 modes supported – exception, block, drop oldest chunk
+      overflow_action drop_oldest_chunk
+      # If the bottom chunk fails to be written out, it will remain in the queue and Fluentd will retry after waiting retry_wait seconds
+      retry_wait 1s
+      # The maximum time (seconds) to retry to flush again the failed chunks, until the plugin discards the buffer chunks.
+      # If the next retry is going to exceed this time limit, the last retry will be made at exactly this time limit.
+      retry_timeout 1m
+    </buffer>
+
     <format>
     @type tsv
     keys time,tag,log
