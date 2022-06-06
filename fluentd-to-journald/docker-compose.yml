@@ -66,31 +66,31 @@ services:
     hostname: nginx
     restart: always
     environment:
-      - RATE=1000
+      - RATE=2000
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
 
-  zap-logger:
-    image: jsenon/loggenerator:latest
-    container_name: zaplogger
-    hostname: zaplogger
-    restart: always
-    ports:
-      - 127.0.0.1:9030:9030
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.21
+  # zap-logger:
+  #   image: jsenon/loggenerator:latest
+  #   container_name: zaplogger
+  #   hostname: zaplogger
+  #   restart: always
+  #   ports:
+  #     - 127.0.0.1:9030:9030
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 10.5.0.21
 
-  random-logger:
-    image: chentex/random-logger:latest
-    container_name: randomlogger
-    hostname: randomlogger
-    restart: always
-    command: [ "1", "10" ]
-    networks:
-      vpcbr:
-        ipv4_address: 10.5.0.22
+  # random-logger:
+  #   image: chentex/random-logger:latest
+  #   container_name: randomlogger
+  #   hostname: randomlogger
+  #   restart: always
+  #   command: [ "1", "10" ]
+  #   networks:
+  #     vpcbr:
+  #       ipv4_address: 10.5.0.22
 
 networks:
   vpcbr:
