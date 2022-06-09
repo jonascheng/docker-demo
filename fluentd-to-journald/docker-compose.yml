@@ -42,24 +42,6 @@ services:
       options:
         tag: "{{.Name}}/{{.ID}}"
 
-  # logrotate:
-  #   build:
-  #     context: ./logrotate/
-  #     dockerfile: Dockerfile
-  #   image: logrotate-image
-  #   container_name: logrotate
-  #   hostname: logrotate
-  #   restart: always
-  #   volumes:
-  #     - /var/log/journal/fluentd/:/var/log/
-  #     - /tmp/logrotate/data/:/var/lib/logrotate/
-  #   environment:
-  #     - LOGROTATE_CRON=5 0 * * *
-  #   logging:
-  #     driver: "journald"
-  #     options:
-  #       tag: "{{.Name}}/{{.ID}}"
-
   nginx-log-generator:
     image: kscarlett/nginx-log-generator
     container_name: nginx
@@ -70,27 +52,6 @@ services:
     networks:
       vpcbr:
         ipv4_address: 10.5.0.20
-
-  # zap-logger:
-  #   image: jsenon/loggenerator:latest
-  #   container_name: zaplogger
-  #   hostname: zaplogger
-  #   restart: always
-  #   ports:
-  #     - 127.0.0.1:9030:9030
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 10.5.0.21
-
-  # random-logger:
-  #   image: chentex/random-logger:latest
-  #   container_name: randomlogger
-  #   hostname: randomlogger
-  #   restart: always
-  #   command: [ "1", "10" ]
-  #   networks:
-  #     vpcbr:
-  #       ipv4_address: 10.5.0.22
 
 networks:
   vpcbr:
