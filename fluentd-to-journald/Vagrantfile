@@ -5,7 +5,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 SCRIPT
 
 $dockerconf = <<-SCRIPT
-sudo cp /vagrant/docker.conf/daemon.fluentd.json /etc/docker/daemon.json
+sudo cp /vagrant/docker.conf/daemon.journald.json /etc/docker/daemon.json
 sudo systemctl restart docker
 SCRIPT
 
@@ -15,7 +15,7 @@ sudo systemctl restart systemd-journald
 SCRIPT
 
 $installcron = <<-SCRIPT
-sudo timedatectl set-ntp no
+# sudo timedatectl set-ntp no
 # sudo crontab -l > cron_bkp
 # sudo echo "10 0 * * * /usr/bin/timedatectl set-time 23:10:00 >/dev/null 2>&1" >> cron_bkp
 # trigger zap logger per minute
@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
 
   # Provider for VirtualBox
   config.vm.provider :virtualbox do |vb|
-    vb.memory = "2048"
+    vb.memory = "4096"
     vb.cpus = 4
     vb.customize ["setextradata", :id, "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", 1]
   end

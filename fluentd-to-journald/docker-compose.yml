@@ -19,10 +19,10 @@ services:
     ports:
       - 127.0.0.1:24224:24224
       - 127.0.0.1:24224:24224/udp
-    logging:
-      driver: "journald"
-      options:
-        tag: "{{.Name}}/{{.ID}}"
+    # logging:
+    #   driver: "journald"
+    #   options:
+    #     tag: "{{.Name}}/{{.ID}}"
 
   fluentd.housekeeping:
     build:
@@ -36,22 +36,31 @@ services:
       - /var/log/journal/fluentd/:/var/log/
     environment:
       - FLUENTD_HOUSEKEEPING_CRON=5 0 * * *
-      - FLUENTD_HOUSEKEEPING_DAYS=3
-    logging:
-      driver: "journald"
-      options:
-        tag: "{{.Name}}/{{.ID}}"
+      - FLUENTD_HOUSEKEEPING_DAYS=2
+    # logging:
+    #   driver: "journald"
+    #   options:
+    #     tag: "{{.Name}}/{{.ID}}"
 
   nginx-log-generator:
     image: kscarlett/nginx-log-generator
-    container_name: nginx
+    deploy:
+      replicas: 10
     hostname: nginx
     restart: always
     environment:
-      - RATE=2000
+      - RATE=200
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: "127.0.0.1:24224"
+        fluentd-async-connect: "true"
+        fluentd-retry-wait: "3s"
+        fluentd-max-retries: "4294967295"
+        fluentd-buffer-limit: "81920"
+        tag: "nginx/{{.ID}}"
     networks:
       vpcbr:
-        ipv4_address: 10.5.0.20
 
 networks:
   vpcbr:

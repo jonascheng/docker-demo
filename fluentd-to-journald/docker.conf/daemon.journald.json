@@ -2,7 +2,7 @@
     "log-driver": "journald",
     "log-opts": {
         "mode": "non-blocking",
-        "max-buffer-size": "8m",
+        "max-buffer-size": "16m",
         "tag": "{{.Name}}/{{.ID}}"
     }
 }
