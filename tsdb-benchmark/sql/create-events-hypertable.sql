@@ -20,5 +20,5 @@ CREATE TABLE sample_events(
 SELECT CREATE_HYPERTABLE(
   'sample_events',
   'event_time',
-  chunk_time_interval => INTERVAL '1 day',
+  chunk_time_interval => INTERVAL '1 days',
   migrate_data => true);
