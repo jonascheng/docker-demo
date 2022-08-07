@@ -12,7 +12,7 @@ SELECT
   event_time
 FROM
   generate_series(
- 	  now() - INTERVAL '360 days',
+ 	  now() - INTERVAL '__INSERT_INTERVAL_DAYS__ days',
     now(),
     INTERVAL '1 min'
   ) as event_time;
