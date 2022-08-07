@@ -8,7 +8,7 @@ where:
     -h  show this help text
     -s  set the seed value (default: 42)"
 
-interval_days=30
+interval_days=7
 while getopts ':hd:' option; do
   case "$option" in
     h) echo "$usage"
@@ -41,7 +41,10 @@ docker exec -it tsdb psql -U postgres -f /sql/insert-agents-generate.sql
 # create raw sql with insert commands
 docker exec -it tsdb psql -U postgres -f /sql/create-events-normaltable.sql
 docker exec -it tsdb psql -U postgres -f /tmp/insert-events-generate.sql
-docker exec -it tsdb pg_dump --table sample_events --data-only --inserts -f /tmp/insert-events.sql -U postgres postgres
+# for pg11
+# docker exec -it tsdb pg_dump --table sample_events --data-only --inserts -f /tmp/insert-events.sql -U postgres postgres
+# for pg12
+docker exec -it tsdb pg_dump --table sample_events --data-only --inserts --rows-per-insert=100 -f /tmp/insert-events.sql -U postgres postgres
 
 #####
 echo measure normal table insertion

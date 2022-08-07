@@ -1,7 +1,7 @@
 version: "3.9" # optional since v1.27.0
 services:
   timescaledb:
-    image: timescale/timescaledb:2.3.1-pg11
+    image: timescale/timescaledb:2.3.1-pg12
     container_name: tsdb
     expose:
       - 5432
@@ -13,3 +13,5 @@ services:
       - "postgres"
       - "-c"
       - "max_locks_per_transaction=1440"
+      - "-c"
+      - "shared_buffers=250MB"
