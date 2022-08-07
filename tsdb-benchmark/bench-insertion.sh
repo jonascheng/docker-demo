@@ -8,7 +8,7 @@ where:
     -h  show this help text
     -s  set the seed value (default: 42)"
 
-interval_days=7
+interval_days=30
 while getopts ':hd:' option; do
   case "$option" in
     h) echo "$usage"
