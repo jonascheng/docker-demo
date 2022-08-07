@@ -1,5 +1,5 @@
--- insert 12 months of sample data with 1-min intervals, ending now()
--- about 360(d) * 24(h) * 60(m) = 518400 rows
+-- insert 1 months of sample data with 1-second intervals, ending now()
+-- about 30(d) * 24(h) * 60(m) * 60(s) = 2,592,000 rows
 INSERT INTO sample_events(
   agent_id,
   event_type,
@@ -14,5 +14,5 @@ FROM
   generate_series(
  	  now() - INTERVAL '__INSERT_INTERVAL_DAYS__ days',
     now(),
-    INTERVAL '1 min'
+    INTERVAL '1 seconds'
   ) as event_time;

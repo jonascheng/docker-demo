@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- create sample_agents table
 CREATE TABLE sample_agents(
-  agent_id bigint,
+  agent_id BIGINT,
   agent_uuid uuid
 );
 
