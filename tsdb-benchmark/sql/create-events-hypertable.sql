@@ -24,4 +24,4 @@ SELECT CREATE_HYPERTABLE(
   chunk_time_interval => INTERVAL '1 days',
   migrate_data => true);
 
-CREATE INDEX sample_events_agent_id_idx ON sample_events("agent_id");
+CREATE INDEX sample_events_agent_id_idx ON sample_events("agent_id", "event_time" DESC);

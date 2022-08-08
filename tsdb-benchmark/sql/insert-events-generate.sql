@@ -1,4 +1,4 @@
--- insert 1 months of sample data with 1-second intervals, ending now()
+-- insert 30 days of sample data with 1-second intervals, ending now()
 -- about 30(d) * 24(h) * 60(m) * 60(s) = 2,592,000 rows
 INSERT INTO sample_events(
   agent_id,
