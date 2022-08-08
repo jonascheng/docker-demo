@@ -2,17 +2,20 @@
 
 ####
 # shell command line
-usage="$(basename "$0") [-h] [-d n] -- benchmark data insertion
+usage="$(basename "$0") [-h] [-c n] [-d n] -- benchmark data insertion
 
 where:
     -h  show this help text
     -s  set the seed value (default: 42)"
 
 interval_days=7
-while getopts ':hd:' option; do
+chunk_time_interval=1
+while getopts ':hc:d:' option; do
   case "$option" in
     h) echo "$usage"
        exit
+       ;;
+    c) chunk_time_interval=$OPTARG
        ;;
     d) interval_days=$OPTARG
        ;;

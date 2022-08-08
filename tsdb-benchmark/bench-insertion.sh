@@ -15,11 +15,11 @@ docker exec -it tsdb pg_dump --table sample_events --data-only --inserts --rows-
 #####
 echo measure normal table insertion
 docker exec -it tsdb psql -U postgres -f /sql/create-events-normaltable.sql
-time docker exec -it tsdb psql -U postgres -f /tmp/insert-events.sql >&2 >/dev/null
+time docker exec -it tsdb psql -U postgres -f /tmp/insert-events-generate.sql >&2 >/dev/null
 
 #####
 echo measure hypertable insertion
-docker exec -it tsdb psql -U postgres -f /sql/create-events-hypertable.sql
-time docker exec -it tsdb psql -U postgres -f /tmp/insert-events.sql >&2 >/dev/null
+docker exec -it tsdb psql -U postgres -f /tmp/create-events-hypertable.sql
+time docker exec -it tsdb psql -U postgres -f /tmp/insert-events-generate.sql >&2 >/dev/null
 
 . ./teardown.sh
