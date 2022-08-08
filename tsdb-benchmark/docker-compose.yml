@@ -14,4 +14,4 @@ services:
       - "-c"
       - "max_locks_per_transaction=1440"
       - "-c"
-      - "shared_buffers=250MB"
+      - "shared_buffers=500MB"
