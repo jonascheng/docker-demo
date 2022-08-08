@@ -27,6 +27,4 @@ echo === measure normal table query by last 1 days AND group by hour ===
 time docker exec -it tsdb psql -U postgres -c "SELECT date_trunc('hour', event_time) as hour, COUNT(1) FROM sample_events WHERE event_time > now() - INTERVAL '1 days' GROUP BY hour ORDER BY hour LIMIT 12;"
 
 ####
-
-####
 . ./teardown.sh
