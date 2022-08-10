@@ -29,7 +29,7 @@ docker exec -it tsdb psql -U postgres -c "SELECT add_retention_policy('sample_ev
 
 ####
 echo === find all jobs related to retention policies ===
-docker exec -it tsdb psql -U postgres -c "SELECT * FROM timescaledb_information.jobs where application_name like 'Retention%';"
+docker exec -it tsdb psql -U postgres -c "SELECT application_name, schedule_interval, hypertable_name FROM timescaledb_information.jobs where application_name like 'Retention%';"
 
 ####
 echo === alter schedule interval to 5 seconds ===
@@ -37,7 +37,7 @@ docker exec -it tsdb psql -U postgres -c "SELECT alter_job(job_id, schedule_inte
 
 ####
 echo === find all jobs related to retention policies ===
-docker exec -it tsdb psql -U postgres -c "SELECT * FROM timescaledb_information.jobs where application_name like 'Retention%';"
+docker exec -it tsdb psql -U postgres -c "SELECT application_name, schedule_interval, hypertable_name FROM timescaledb_information.jobs where application_name like 'Retention%';"
 
 ####
 echo === pause to wait for retention policy take place ===
