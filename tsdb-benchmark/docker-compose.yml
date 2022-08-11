@@ -2,6 +2,7 @@ version: "3.9" # optional since v1.27.0
 services:
   timescaledb:
     image: timescale/timescaledb:2.3.1-pg12
+    # image: timescale/timescaledb:2.7.2-pg12
     container_name: tsdb
     expose:
       - 5432
