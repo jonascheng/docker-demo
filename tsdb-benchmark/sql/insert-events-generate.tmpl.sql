@@ -1,4 +1,4 @@
--- insert __INSERT_INTERVAL_DAYS__ days of sample data with 1-second intervals, ending now()
+-- insert __INSERT_INTERVAL_DAYS__ days of sample data with 10-second intervals, ending now()
 INSERT INTO sample_events(
   agent_id,
   event_type,
