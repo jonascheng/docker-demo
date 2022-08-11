@@ -28,7 +28,7 @@ echo === purge data with drop_chunks interval: 1 days ===
 docker exec -it tsdb psql -U postgres -c "SELECT drop_chunks('sample_events', INTERVAL '1 days');"
 
 ####
-echo === check up chunks information after drop_chunks ===
+echo === you may notice that chunks with data older than yesterday were dropped ===
 docker exec -it tsdb psql -U postgres -c "SELECT hypertable_name, chunk_name, range_start, range_end FROM timescaledb_information.chunks WHERE hypertable_name = 'sample_events';"
 
 ####
