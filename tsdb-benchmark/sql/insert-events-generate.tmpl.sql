@@ -13,5 +13,5 @@ FROM
   generate_series(
  	  now() - INTERVAL '__INSERT_INTERVAL_DAYS__ days',
     now(),
-    INTERVAL '1 seconds'
+    INTERVAL '10 seconds'
   ) as event_time;
