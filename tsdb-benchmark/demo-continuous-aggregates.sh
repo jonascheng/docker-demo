@@ -42,13 +42,13 @@ docker exec -it tsdb psql -U postgres -c "SELECT application_name, scheduled, sc
 ####
 echo "=== measure top N event_type by last 90 days in legacy aggregates ==="
 time docker exec -it tsdb psql -U postgres -c "SELECT event_type, COUNT(1) AS counts FROM sample_events WHERE time_bucket(INTERVAL '1 day', event_time) > now() - INTERVAL '90 days' GROUP BY event_type ORDER BY counts DESC;"
-echo "=== measure top N event_type by last 90 days in legacy aggregates ==="
+echo "=== measure top N event_type by last 90 days in continuous aggregates ==="
 time docker exec -it tsdb psql -U postgres -c "SELECT event_type, SUM(count) AS counts FROM event_type_summary_daily WHERE bucket > now() - INTERVAL '90 days' GROUP BY event_type ORDER BY counts DESC;"
 
 ####
 echo "=== measure top 5 agent by last 90 days in legacy aggregates ==="
 time docker exec -it tsdb psql -U postgres -c "SELECT agent_id, COUNT(1) AS counts FROM sample_events WHERE time_bucket(INTERVAL '1 day', event_time) > now() - INTERVAL '90 days' GROUP BY agent_id ORDER BY counts DESC LIMIT 5;"
-echo "=== measure top 5 event_type by last 90 days in legacy aggregates ==="
+echo "=== measure top 5 agent by last 90 days in continuous aggregates ==="
 time docker exec -it tsdb psql -U postgres -c "SELECT agent_id, SUM(count) AS counts FROM event_type_summary_daily WHERE bucket > now() - INTERVAL '90 days' GROUP BY agent_id ORDER BY counts DESC LIMIT 5;"
 
 ####
